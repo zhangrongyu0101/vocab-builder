@@ -1,0 +1,86 @@
+/* styles.css */
+.usage-input {
+    display: block;
+    width: 100%;
+    height: 100px; /* 根据需要调整高度 */
+    margin-top: 10px; /* 在上方元素下方留出一些空间 */
+    padding: 10px; /* 添加一些内边距 */
+    box-sizing: border-box; /* 确保宽度包括内边距 */
+}
+
+/* 容器样式 */
+ul {
+    list-style-type: none; /* 移除默认的列表项目符号 */
+    padding: 0;
+}
+
+/* 列表项样式 */
+li {
+    background-color: #f9f9f9; /* 轻微的背景色 */
+    border: 1px solid #ddd; /* 边框 */
+    margin-bottom: 10px; /* 列表项之间的间隔 */
+    padding: 10px; /* 内边距 */
+    border-radius: 5px; /* 边角圆滑 */
+    position: relative; /* 为绝对定位的子元素做准备 */
+}
+
+/* 用法样式 */
+.word-usage {
+    white-space: pre-wrap; /* 保持空格，自动换行 */
+    color: #555; /* 文字颜色 */
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* 计数器样式 */
+span {
+    display: block; /* 使其成为块元素 */
+    margin-top: 10px;
+    color: #333;
+}
+
+/* 编辑和删除链接样式 */
+a {
+    text-decoration: none; /* 移除下划线 */
+    color: #007bff; /* 链接颜色 */
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+a:hover {
+    text-decoration: underline; /* 鼠标悬停时添加下划线 */
+}
+
+/* 编辑和删除按钮样式 */
+a[href*="/edit/"],
+a[href*="/delete/"] {
+    background-color: #007bff; /* 蓝色背景 */
+    color: white; /* 白色文字 */
+    padding: 5px 10px; /* 内边距 */
+    border-radius: 3px; /* 圆角 */
+    font-size: 0.875rem; /* 字体大小 */
+}
+
+a[href*="/delete/"] {
+    background-color: #dc3545; /* 删除按钮为红色背景 */
+}
+
+a[href*="/edit/"]:hover,
+a[href*="/delete/"]:hover {
+    opacity: 0.8; /* 鼠标悬停时的透明度效果 */
+}
+
+
+#usage {
+    background-color: #f0f0f0; /* 浅灰色背景，用于突出显示用法区域 */
+    border: 1px solid #ccc; /* 边框颜色 */
+    border-radius: 5px; /* 边框圆角 */
+    padding: 15px; /* 内边距 */
+    margin-top: 20px; /* 上边距 */
+    white-space: pre-wrap; /* 保持空白符，如换行和空格，并在必要时换行 */
+    font-family: Arial, sans-serif; /* 字体 */
+    font-size: 14px; /* 字号 */
+    color: #333; /* 文字颜色 */
+    overflow-wrap: break-word; /* 防止长单词或URL破坏布局 */
+    max-width: 100%; /* 最大宽度 */
+}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>Vocab Builder 1.0.0</h1>
+    <form action="/add" method="POST">
+        <input type="text" class="input-field" name="word" placeholder="Word" required>
+        <input type="text" class="input-field" name="translation" placeholder="Translation" required>
+        <!-- 替换为textarea -->
+        <textarea class="input-field" name="usage" placeholder="Usage"></textarea>
+        <button type="submit">Add Word</button>
+    </form>
+    
+
+    <a href="{{ url_for('main.dictation') }}"> Go to Dictation</a>
+
+        <!-- 文件上传表单 -->
+    <h2>Import Words</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="csvFile" accept=".csv">
+        <button type="submit">Upload</button>
+    </form>
+
+    <p id="uploadFeedback"></p>
+
+    <ul>
+        {% for word in words %}
+            <li>
+                {{ word['word'] }} - {{ word['translation'] }}
+                <div class="word-usage">Usage: {{ word['usage'] }}</div>
+                <span>Dictation Count: {{ word['dictation_count'] }}</span>
+                <a href="/edit/{{ word['_id'] }}">Edit</a>
+                <a href="/delete/{{ word['_id'] }}">Delete</a>
+            </li>
+        {% else %}
+            <li>No words added yet!</li>
+        {% endfor %}
+    </ul>
+    
+
+
+    <!-- 这里添加JavaScript代码 -->
+    <script>
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+                const inputs = Array.from(document.querySelectorAll('.input-field'));
+                const activeElement = document.activeElement;
+                const currentIndex = inputs.indexOf(activeElement);
+                if (event.key === 'ArrowRight') {
+                    const nextIndex = (currentIndex + 1) % inputs.length;
+                    inputs[nextIndex].focus();
+                } else if (event.key === 'ArrowLeft') {
+                    const prevIndex = (currentIndex - 1 + inputs.length) % inputs.length;
+                    inputs[prevIndex].focus();
+                }
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+        
+            const formData = new FormData();
+            const fileInput = document.getElementById('csvFile');
+            formData.append('file', fileInput.files[0]);
+        
+            fetch('/import-words', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to upload');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('uploadFeedback').textContent = 'Upload successful!';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('uploadFeedback').textContent = 'Upload failed. Please try again.';
+            });
+        });
+
+            
+    </script>
+{% endblock %}

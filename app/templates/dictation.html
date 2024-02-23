@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+
+<h1>Dictation</h1>
+{% if dictation_prompt %}
+
+    <a href="/edit/{{ dictation_prompt['_id'] }}">Edit</a>
+    <p id="translationPrompt">汉语: <span>{{ dictation_prompt['translation'] }}</span></p>
+    <input type="text" id="dictationInput" placeholder="Type the English word">
+    <button id="checkWord">Check</button>
+    <button id="nextWord" style="display:none;">Next</button> <!-- 新增的Next按钮 -->
+    <p id="feedback"></p>
+    <!-- 新增的用法显示区域 -->
+    <div id="usage" style="max-width:100%; overflow-wrap:break-word; margin-top:20px;"></div> <!-- 用于显示用法的元素 -->
+    <input type="hidden" id="correctWord" value="{{ dictation_prompt['word'] }}">
+    <input type="hidden" id="dbId" value="{{ dictation_prompt['_id']}}">
+    <input type="hidden" id="wordUsage" value="{{ dictation_prompt['usage'] }}"> <!-- 存储用法的隐藏字段 -->
+{% else %}
+    <p>No words available for dictation.</p>
+{% endif %}
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('dictationInput');
+        const checkButton = document.getElementById('checkWord');
+        let correctAnswerGiven = false; // 用于标记是否已经给出了正确答案
+    
+        function incrementDictationCount(wordId) {
+            fetch(`/increment-dictation-count/${wordId}`, { method: 'POST' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to increment dictation count');
+                }
+                console.log('Dictation count incremented successfully');
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function checkWord() {
+            const inputWord = input.value.trim();
+            const correctWord = document.getElementById('correctWord').value;
+            // 从隐藏的input元素获取单词ID
+            const wordId = document.getElementById('dbId').value;
+    
+            if (!correctAnswerGiven) {
+                if (inputWord.toLowerCase() === correctWord.toLowerCase()) {
+                    document.getElementById('feedback').textContent = 'Correct!';
+                    document.getElementById('usage').innerHTML = `<strong>Usage:</strong> ${document.getElementById('wordUsage').value}`;
+                    correctAnswerGiven = true;
+                    incrementDictationCount(wordId);
+                } else {
+                    document.getElementById('feedback').textContent = `Incorrect, try again. The correct word was: ${correctWord}.`;
+                    document.getElementById('usage').textContent = '';
+                }
+            } else {
+                // 如果已经给出了正确答案，则直接加载新单词
+                loadNewWord();
+            }
+        }
+    
+        function loadNewWord() {
+            fetch('/new-word')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load new word');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 使用服务器返回的数据更新页面元素
+                document.getElementById('translationPrompt').querySelector('span').textContent = data.translation;
+                document.getElementById('correctWord').value = data.word;
+                document.getElementById('dbId').value = data._id;
+                document.getElementById('wordUsage').value = data.usage;
+                // 清空反馈信息和用法显示，准备下一个单词
+                document.getElementById('feedback').textContent = '';
+                document.getElementById('usage').textContent = '';
+                input.value = ''; // 重置输入框
+                correctAnswerGiven = false; // 重置正确答案标记
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('feedback').textContent = 'Failed to load new word. Please try again.';
+            });
+        }
+    
+        checkButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            checkWord();
+        });
+    
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // 防止表单提交
+                checkWord();
+            }
+        });
+    });
+    
+    
+    </script>
+    
+{% endblock %}
