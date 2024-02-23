@@ -36,12 +36,19 @@ def add_word():
     usage = request.form.get('usage')
 
     if word and translation:  # 简单的验证
-        mongo.db.words.insert_one({'word': word, 'translation': translation, 'usage': usage})
+        # 在插入单词时添加dictation_count字段并将其初始化为0
+        mongo.db.words.insert_one({
+            'word': word, 
+            'translation': translation, 
+            'usage': usage, 
+            'dictation_count': 0
+        })
         flash('Word added successfully!')
     else:
         flash('Word and Translation cannot be empty!')
 
     return redirect(url_for('main.index'))
+
 
 @main.route('/edit/<word_id>')
 def edit_word(word_id):
@@ -110,7 +117,11 @@ def import_words():
         # 使用解包赋值同时提供默认值以处理行元素数量不足的情况
         word, translation, usage = (row + [None, None, None])[:3]
         # 将单词、翻译和用法保存到数据库
-        mongo.db.words.insert_one({'word': word or "未知", 'translation': translation or "未知", 'usage': usage or "无"})
+        mongo.db.words.insert_one({'word': word or "未知", 
+                                'translation': translation or "未知", 
+                                'usage': usage or "无",
+                                'dictation_count': 0  # 初始化听写次数为0
+                                })
 
     return jsonify({'message': 'Upload successful'})
 
