@@ -9,6 +9,11 @@
 
     <a href="/edit/{{ dictation_prompt['_id'] }}">Edit</a>
     <p id="translationPrompt">汉语: <span>{{ dictation_prompt['translation'] }}</span></p>
+    
+    <!-- google -->
+    <div id="translationResult">翻译结果将显示在这里</div>
+    <audio id="pronunciationAudio" src="" hidden></audio>
+
     <input type="text" id="dictationInput" placeholder="Type the English word">
     <button id="checkWord">Check</button>
     <button id="nextWord" style="display:none;">Next</button> <!-- 新增的Next按钮 -->
@@ -29,7 +34,30 @@
         const input = document.getElementById('dictationInput');
         const checkButton = document.getElementById('checkWord');
         let correctAnswerGiven = false; // 用于标记是否已经给出了正确答案
+        
+        function fetchTranslationAndPronunciation() {
+            const word = document.getElementById('correctWord').value;
+            fetch(`/translate?text=${word}`)
+            .then(response => response.json())
+            .then(data => {
+                // 显示翻译结果
+                document.getElementById('translationResult').textContent = `翻译: ${data.translation}`;
+                // 请求读音
+                return fetch(`/pronounce?text=${word}`);
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const audioURL = URL.createObjectURL(blob);
+                const audioElement = document.getElementById('pronunciationAudio');
+                audioElement.src = audioURL;
+                audioElement.play();
+            })
+            .catch(error => console.error('Error fetching translation or pronunciation:', error));
+        }
     
+        // 当页面加载完毕，获取翻译和读音
+        fetchTranslationAndPronunciation();
+
         function incrementDictationCount(wordId) {
             fetch(`/increment-dictation-count/${wordId}`, { method: 'POST' })
             .then(response => {
@@ -82,6 +110,9 @@
                 document.getElementById('usage').textContent = '';
                 input.value = ''; // 重置输入框
                 correctAnswerGiven = false; // 重置正确答案标记
+
+                // 当页面加载完毕，获取翻译和读音
+                fetchTranslationAndPronunciation();
             })
             .catch(error => {
                 console.error('Error:', error);

@@ -1,13 +1,22 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask import jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash,jsonify
 from flask_pymongo import ObjectId
 from . import mongo
 import random
-from flask import request, jsonify
 import csv
 from io import StringIO
+from flask import Flask, request, Response
+import requests
+from bs4 import BeautifulSoup
+from flask import Flask, request
+import requests
+import re
+from urllib.parse import quote 
+import html
+
+from googletrans import Translator, LANGUAGES
 
 main = Blueprint('main', __name__)
+
 
 @main.route('/dictation')
 def dictation():
@@ -134,4 +143,58 @@ def increment_dictation_count(word_id):
     )
     return jsonify({'message': 'Dictation count incremented successfully'})
 
+#----------------------谷歌api后端-------------------------
+
+# 定义Google翻译API的URL
+
+GOOGLE_TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single"
+GOOGLE_TTS_URL = "http://translate.google.com/translate_tts"
+# GOOGLE_TRANSLATE_URL = 'http://translate.google.com/m?q=%s&tl=%s&sl=%s'
+
+@main.route('/translate', methods=['GET'])
+def translate():
+    text = request.args.get('text', '')
+    # 设置源语言为英文
+    source = 'en'
+    # 设置目标语言为简体中文
+    target = 'zh-CN'
+    params = {
+        'client': 'gtx',
+        'sl': source,
+        'tl': target,
+        'dt': 't',
+        'q': text,
+    }
     
+    # 定义代理配置
+    proxies = {
+        "http": "http://127.0.0.1:4780",  # 替换为你的HTTP代理地址
+        "https": "https://127.0.0.1:4780",  # 替换为你的HTTPS代理地址
+    }
+    
+    try:
+        response = requests.get(GOOGLE_TRANSLATE_URL, params=params, proxies=proxies)
+        response.raise_for_status()
+        # 简化响应处理，直接返回第一个翻译结果
+        translation = response.json()[0][0][0]
+        return jsonify({'translation': translation})
+    except requests.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+@main.route('/pronounce', methods=['GET'])
+def pronounce():
+    text = request.args.get('text', '')
+    lang = request.args.get('lang', 'en')
+    params = {
+        'client': 'tw-ob',
+        'ie': 'UTF-8',
+        'tl': lang,
+        'q': text,
+    }
+    try:
+        response = requests.get(GOOGLE_TTS_URL, params=params, headers={"User-Agent": "Mozilla/5.0"})
+        response.raise_for_status()
+        # 直接返回音频数据
+        return Response(response.content, mimetype='audio/mpeg')
+    except requests.RequestException as e:
+        return jsonify({'error': str(e)}), 500
