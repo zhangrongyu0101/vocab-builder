@@ -26,8 +26,8 @@ Vocab Builder是一个帮助用户通过听写方式学习新单词的Web应用�
 
 1. 克隆仓库到本地：
 
-```
 [git clone https://your-repository-url.git](https://github.com/zhangrongyu0101/vocab-builder.git)
+```
 cd vocab-builder
 ```
 
