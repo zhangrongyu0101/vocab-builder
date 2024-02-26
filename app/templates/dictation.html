@@ -100,18 +100,22 @@
                 return response.json();
             })
             .then(data => {
-                // 使用服务器返回的数据更新页面元素
+                // Update the translation, word, ID, and usage with the new word's data
                 document.getElementById('translationPrompt').querySelector('span').textContent = data.translation;
                 document.getElementById('correctWord').value = data.word;
                 document.getElementById('dbId').value = data._id;
                 document.getElementById('wordUsage').value = data.usage;
-                // 清空反馈信息和用法显示，准备下一个单词
+        
+                // Update the Edit link's href attribute to reflect the new word's ID
+                document.querySelector('a[href^="/edit/"]').setAttribute('href', `/edit/${data._id}`);
+        
+                // Reset feedback, usage display, and input for the next word
                 document.getElementById('feedback').textContent = '';
                 document.getElementById('usage').textContent = '';
-                input.value = ''; // 重置输入框
-                correctAnswerGiven = false; // 重置正确答案标记
-
-                // 当页面加载完毕，获取翻译和读音
+                input.value = ''; // Reset the input field
+                correctAnswerGiven = false; // Reset the flag for correct answer given
+        
+                // Fetch translation and pronunciation for the new word
                 fetchTranslationAndPronunciation();
             })
             .catch(error => {
@@ -119,6 +123,7 @@
                 document.getElementById('feedback').textContent = 'Failed to load new word. Please try again.';
             });
         }
+        
     
         checkButton.addEventListener('click', function(e) {
             e.preventDefault();
