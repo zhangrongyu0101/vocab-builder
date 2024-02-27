@@ -35,8 +35,10 @@ def dictation():
 
 @main.route('/')
 def index():
-    words_list = list(mongo.db.words.find())
+    # 使用 _id 字段逆序排序单词
+    words_list = list(mongo.db.words.find().sort('_id', -1))
     return render_template('index.html', words=words_list)
+
 
 @main.route('/add', methods=['POST'])
 def add_word():
@@ -44,8 +46,8 @@ def add_word():
     translation = request.form.get('translation')
     usage = request.form.get('usage')
 
-    if word and translation:  # 简单的验证
-        # 在插入单词时添加dictation_count字段并将其初始化为0
+    if word:  # 只检查是否提供了单词
+        # 即使没有提供翻译和用法，也插入单词
         mongo.db.words.insert_one({
             'word': word, 
             'translation': translation, 
@@ -54,9 +56,10 @@ def add_word():
         })
         flash('Word added successfully!')
     else:
-        flash('Word and Translation cannot be empty!')
+        flash('Word cannot be empty!')  # 修改了错误消息以反映新的验证逻辑
 
     return redirect(url_for('main.index'))
+
 
 
 @main.route('/edit/<word_id>')

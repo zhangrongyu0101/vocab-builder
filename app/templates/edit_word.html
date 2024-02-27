@@ -4,7 +4,7 @@
     <h1>Edit Word</h1>
     <form action="/update/{{ word['_id'] }}" method="POST">
         <input type="text" name="word" value="{{ word['word'] }}" required>
-        <input type="text" name="translation" value="{{ word['translation'] }}" required>
+        <input type="text" name="translation" value="{{ word['translation'] }}" >
         <!-- 使用textarea替代input以支持多行文本输入，并应用CSS类 -->
         <textarea name="usage" class="usage-input">{{ word['usage'] }}</textarea>
         <button type="submit">Update Word</button>

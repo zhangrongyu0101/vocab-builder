@@ -43,7 +43,7 @@
     <script>
         document.addEventListener('keydown', function(event) {
             if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-                const inputs = Array.from(document.querySelectorAll('.input-field.required')); // 仅选择带有'required'类的输入字段
+                const inputs = Array.from(document.querySelectorAll('.input-Failed')); // 仅选择带有'required'类的输入字段
                 const activeElement = document.activeElement;
                 const currentIndex = inputs.indexOf(activeElement);
                 if (event.key === 'ArrowRight') {
