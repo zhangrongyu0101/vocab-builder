@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 import csv
 from io import StringIO
+from app import mongo
 
 import_words_bp = Blueprint('import_words_bp', __name__)
 

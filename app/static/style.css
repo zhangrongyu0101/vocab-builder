@@ -84,3 +84,26 @@ a[href*="/delete/"]:hover {
     overflow-wrap: break-word; /* 防止长单词或URL破坏布局 */
     max-width: 100%; /* 最大宽度 */
 }
+
+
+/* ---------------------word group----------------------------------- */
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.word-group {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+#wordGroupsContainer {
+    margin: 20px;
+}
+
+h1 {
+    text-align: center;
+}

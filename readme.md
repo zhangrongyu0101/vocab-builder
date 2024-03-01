@@ -74,3 +74,15 @@ MIT
 美化前端页面
 
 使用TS重构部分代码
+
+## 集合结构
+
+{
+  "_id": ObjectId("..."),
+  "words": [
+    "example",
+    "sample",
+    "instance"
+  ],
+  "similarityType": "formal" // 或 "semantic" 表示形式相似或含义相似
+}
