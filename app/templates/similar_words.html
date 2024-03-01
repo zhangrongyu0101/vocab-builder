@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Similar Words</h1>
+<div id="wordGroupsContainer"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/similar_words.js') }}"></script>
+{% endblock %}

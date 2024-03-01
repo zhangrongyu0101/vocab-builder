@@ -4,15 +4,17 @@
 
     <h1>Vocab Builder 1.0.0 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vocab Builder Logo" width="150"></h1>
     <form action="/add" method="POST">
-        <input type="text" class="input-field.required" name="word" placeholder="Word" required>
-        <input type="text" class="input-field" name="translation" placeholder="Translation">
+        <input type="text" class="input-field" name="word" placeholder="Word" required>
+
+        <textarea class="input-field" name="translation" placeholder="Translation"></textarea>
         <!-- textarea -->
         <textarea class="input-field" name="usage" placeholder="Usage"></textarea>
         <button type="submit">Add Word</button>
     </form>
     
+    
 
-    <a href="{{ url_for('main.dictation') }}"> Go to Dictation</a>
+    <a href="{{ url_for('dictation_bp.dictation') }}"> Go to Dictation</a>
 
         <!-- 文件上传表单 -->
     <h2>Import Words</h2>
@@ -25,22 +27,31 @@
 
     <ul>
         {% for word in words %}
-            <li>
-                {{ word['word'] }} - {{ word['translation'] }}
-                <div class="word-usage">Usage: {{ word['usage'] }}</div>
-                <span>Dictation Count: {{ word['dictation_count'] }}</span>
-                <a href="/edit/{{ word['_id'] }}">Edit</a>
-                <a href="/delete/{{ word['_id'] }}">Delete</a>
-            </li>
+        <li>
+            {{ word['word'] }} - {{ word['translation'] }}
+            <div class="word-usage">Usage: {{ word['usage'] }}</div>
+            <span>Dictation Count: {{ word['dictation_count'] }}</span>
+            <a href="/edit/{{ word['_id'] }}">Edit</a>
+            <a href="/delete/{{ word['_id'] }}">Delete</a>
+            <!-- 添加播放按钮 -->
+            <button onclick="playPronunciation('{{ word['word'] }}')">Play</button>
+        </li>
         {% else %}
-            <li>No words added yet!</li>
+        <li>No words added yet!</li>
         {% endfor %}
     </ul>
     
 
-
     <!-- avaScript代码 -->
     <script>
+
+        function playPronunciation(word) {
+            const lang = 'en'; // 或根据需要调整语言
+            const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
+            const audio = new Audio(audioSrc);
+            audio.play().catch(error => console.error('Playback failed:', error));
+        }
+        
         document.addEventListener('keydown', function(event) {
             if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
                 const inputs = Array.from(document.querySelectorAll('.input-Failed')); // 仅选择带有'required'类的输入字段
@@ -55,7 +66,7 @@
                 }
             }
         });
-
+    
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
         
@@ -85,3 +96,5 @@
             
     </script>
 {% endblock %}
+
+
