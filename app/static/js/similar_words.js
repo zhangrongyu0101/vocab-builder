@@ -8,27 +8,64 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// 这个函数重新从后端加载并显示所有相似单词组
-function fetchSimilarWords() {
+function deleteWordGroup(groupId) {
     return __awaiter(this, void 0, void 0, function* () {
+        openModal();
         try {
-            const response = yield fetch('/similar-words');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const wordGroups = yield response.json();
-            const container = getElementById('wordGroupsContainer');
-            container.innerHTML = ''; // 清空现有内容
-            wordGroups.forEach(group => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'word-group';
-                groupDiv.textContent = `Words: ${group.words.join(', ')} (Type: ${group.similarityType})`;
-                container.appendChild(groupDiv);
+            fetch(`/delete/similar-words/${groupId}`, {
+                method: 'DELETE',
             });
+            closeModal();
+            fetchSimilarWords();
+            window.location.reload(); // 强制刷新页面
         }
         catch (error) {
-            console.error('Error fetching similar words:', error);
+            console.error('Error:', error);
+            alert('Error deleting the word group');
         }
+        window.location.reload();
+    });
+}
+// 这个函数重新从后端加载并显示所有相似单词组
+// async function fetchSimilarWords(): Promise<void> {
+//     try {
+//         const response = await fetch('/similar-words');
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! status: ${response.status}`);
+//         }
+//         const wordGroups: SimilarWordGroup[] = await response.json();
+//         const container = getElementById<HTMLDivElement>('wordGroupsContainer');
+//         container.innerHTML = ''; // 清空现有内容
+//         wordGroups.forEach(group => {
+//             const groupDiv = document.createElement('div');
+//             groupDiv.className = 'word-group';
+//             groupDiv.textContent = `Words: ${group.words.join(', ')} (Type: ${group.similarityType})`;
+//             container.appendChild(groupDiv);
+//         });
+//     } catch (error) {
+//         console.error('Error fetching similar words:', error);
+//     }
+// }
+function fetchSimilarWords() {
+    fetch('/similar-words')
+        .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+        .then((wordGroups) => {
+        const container = getElementById('wordGroupsContainer');
+        container.innerHTML = ''; // 清空现有内容
+        wordGroups.forEach(group => {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'word-group';
+            groupDiv.textContent = `Words: ${group.words.join(',')} (Type: ${group.similarityType})`;
+            container.appendChild(groupDiv);
+        });
+    })
+        .catch(error => {
+        console.error('Error fetching similar words:', error);
     });
 }
 // 获取元素的辅助函数，增加了类型断言
@@ -45,53 +82,6 @@ function openModal() {
 function closeModal() {
     const modal = getElementById('modal');
     modal.style.display = 'none';
-}
-function saveWords() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const wordInput = getElementById('wordInput');
-        const similarityTypeSelect = getElementById('similarityType');
-        // 获取输入数据
-        const words = wordInput.value.split(',');
-        const similarityType = similarityTypeSelect.value;
-        // 构造请求体
-        const data = { words, similarityType };
-        try {
-            // 发送POST请求到后端
-            const response = yield fetch('/api/similar-words', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            closeModal();
-            yield fetchSimilarWords();
-        }
-        catch (error) {
-            console.error('Error:', error);
-        }
-    });
-}
-function deleteWordGroup(groupId) {
-    if (!groupId) {
-        console.error('Group ID is required for delete operation');
-        return;
-    }
-    try {
-        const response = fetch(`/delete/similar-words/${groupId}`, {
-            method: 'DELETE',
-        });
-        closeModal();
-        fetchSimilarWords();
-        // window.location.reload(); // 强制刷新页面
-    }
-    catch (error) {
-        console.error('Error:', error);
-        alert('Error deleting the word group');
-    }
 }
 // 绑定事件
 document.addEventListener('DOMContentLoaded', () => {

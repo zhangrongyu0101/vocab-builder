@@ -86,7 +86,7 @@ a[href*="/delete/"]:hover {
 }
 
 
-/* ---------------------word group----------------------------------- */
+/* ---------------------word group----------------------------------- 
 
 #modal {
     position: fixed;
@@ -97,7 +97,7 @@ a[href*="/delete/"]:hover {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    display: none; /* 默认隐藏 */
+    display: none; 
 }
 
 #addWordGroupBtn {
@@ -109,3 +109,5 @@ a[href*="/delete/"]:hover {
     border-radius: 5px;
     cursor: pointer;
 }
+
+*/

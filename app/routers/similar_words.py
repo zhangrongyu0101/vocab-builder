@@ -10,24 +10,33 @@ from flask import Blueprint
 # 定义蓝图
 similar_words_bp = Blueprint('similar_words', __name__)
 
-# 使用蓝图定义路由
-@similar_words_bp.route('/similar-words', methods=['GET'])
+# # 使用蓝图定义路由
+# @similar_words_bp.route('/similar-words', methods=['GET'])
+# def similar_words():
+#     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#         word_groups = mongo.db.similar_words.find({})
+#         word_groups_list = list(word_groups)
+#         for group in word_groups_list:
+#             group["_id"] = str(group["_id"])
+#         return jsonify(word_groups_list)
+#     else:
+#         # 在渲染模板前获取所有相似单词组
+#         word_groups = mongo.db.similar_words.find({})
+#         word_groups_list = [group for group in word_groups]
+#         for group in word_groups_list:
+#             group["_id"] = str(group["_id"])
+#         # 将所有相似单词组传递给模板
+#         return render_template('similar_words.html', word_groups=word_groups_list)
+@similar_words_bp.route('/similar-words')
 def similar_words():
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        word_groups = mongo.db.similar_words.find({})
-        word_groups_list = list(word_groups)
-        for group in word_groups_list:
-            group["_id"] = str(group["_id"])
-        return jsonify(word_groups_list)
-    else:
-        # 在渲染模板前获取所有相似单词组
-        word_groups = mongo.db.similar_words.find({})
-        word_groups_list = [group for group in word_groups]
-        for group in word_groups_list:
-            group["_id"] = str(group["_id"])
-        # 将所有相似单词组传递给模板
-        return render_template('similar_words.html', word_groups=word_groups_list)
+    # 获取所有相似单词组
+    word_groups = mongo.db.similar_words.find({}).sort('_id', -1)
+    word_groups_list = [group for group in word_groups]
+    for group in word_groups_list:
+        group["_id"] = str(group["_id"])  # 确保 MongoDB 的 ObjectId 能在模板中正确显示
 
+    # 将所有相似单词组传递给模板进行渲染
+    return render_template('similar_words.html', word_groups=word_groups_list)
 
 
 @similar_words_bp.route('/add/similar-words', methods=['POST'])
