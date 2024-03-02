@@ -1,10 +1,34 @@
-{% extends "base.html" %}
-
 {% block content %}
+
 <h1>Similar Words</h1>
-<div id="wordGroupsContainer"></div>
+
+<!-- 新增加相似单词组的表单 -->
+<h2>Add Similar Word Group</h2>
+<form action="{{ url_for('similar_words.add_similar_words') }}" method="POST">
+    <input type="text" name="words" placeholder="Enter words, separated, by, commas" required>
+    <select name="similarityType">
+        <option value="formal">Formal</option>
+        <option value="semantic">Semantic</option>
+    </select>
+    <button type="submit">Add Group</button>
+</form>
+
+
+<!-- 显示相似单词组列表 -->
+<h2>Similar Word Groups</h2>
+<ul>
+    {% for group in word_groups %}
+    <li>
+        {{ group.words|join(',') }} - {{ group.similarityType }}
+        <button class="delete-btn" type="submit" data-group-id="{{ group['_id'] }}" type="button" onclick="deleteWordGroup(this.getAttribute('data-group-id'));">Delete</button>
+    </li>
+    {% else %}
+    <li>No similar word groups added yet!</li>
+    {% endfor %}
+</ul>
+
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/similarWords.js') }}"></script>
+<script src="{{ url_for('static', filename='js/similar_words.js') }}"></script>
 {% endblock %}

@@ -30,7 +30,7 @@ def add_word():
     else:
         flash('Word cannot be empty!')  # 修改了错误消息以反映新的验证逻辑
 
-    return redirect(url_for('main.index'))
+    return redirect(url_for('words_bp.index'))
 
 
 
@@ -50,14 +50,13 @@ def update_word(word_id):
         }}
     )
     flash('Word updated successfully!')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('words_bp.index'))
 
 @words_bp.route('/delete/<word_id>')
 def delete_word(word_id):
-    mongo = current_app.extensions['pymongo'].mongo
     mongo.db.words.delete_one({'_id': ObjectId(word_id)})
     flash('Word deleted successfully!')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('words_bp.index'))
 
 
 @words_bp.route('/increment-dictation-count/<word_id>', methods=['POST'])

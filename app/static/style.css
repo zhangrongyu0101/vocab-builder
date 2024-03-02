@@ -88,22 +88,24 @@ a[href*="/delete/"]:hover {
 
 /* ---------------------word group----------------------------------- */
 
-body {
-    font-family: Arial, sans-serif;
-}
-
-.word-group {
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
+#modal {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
     border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    display: none; /* 默认隐藏 */
 }
 
-#wordGroupsContainer {
+#addWordGroupBtn {
     margin: 20px;
-}
-
-h1 {
-    text-align: center;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
