@@ -1,5 +1,5 @@
 # app/routers/similar_words.py
-from flask import Blueprint, current_app, jsonify ,request,render_template
+from flask import Blueprint, current_app, jsonify ,request,render_template,flash
 from flask import request, jsonify, redirect, url_for
 from bson import ObjectId
 from app import mongo
@@ -83,23 +83,8 @@ def update_similar_words(id):
         return jsonify({'error': 'Failed to update similar words', 'exception': str(e)}), 500
 
     
-@similar_words_bp.route('/delete/similar-words/<string:groupId>', methods=['DELETE'])
+@similar_words_bp.route('/delete/similar-words/<groupId>')
 def delete_similar_words(groupId):
-    try:
-        # 尝试将 groupId 转换为 ObjectId
-        obj_id = ObjectId(groupId)
-    except:
-        # 如果转换失败，返回一个错误消息
-        return jsonify({'error': 'Invalid ID format'}), 400
-
-    # 执行删除操作
-    result = mongo.db.similar_words.delete_one({'_id': obj_id})
-
-    # 检查是否有文档被删除
-    if result.deleted_count == 0:
-        # 如果没有文档被删除，返回一个错误消息
-        return jsonify({'error': 'No records found to delete'}), 404
-
-    # 如果一切顺利，返回成功消息
-    return jsonify({'message': 'Word deleted successfully'}), 200
-
+    mongo.db.similar_words.delete_one({'_id': ObjectId(groupId)})
+    flash('Word deleted successfully!')
+    return redirect(url_for('similar_words.similar_words'))

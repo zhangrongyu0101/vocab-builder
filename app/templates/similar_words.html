@@ -1,7 +1,7 @@
 {% block content %}
 
 <h1>Similar Words</h1>
-
+<a href="{{ url_for('words_bp.index') }}"> back</a>
 <!-- 新增加相似单词组的表单 -->
 <h2>Add Similar Word Group</h2>
 <form action="{{ url_for('similar_words.add_similar_words') }}" method="POST">
@@ -20,6 +20,8 @@
     {% for group in word_groups %}
     <li>
         {{ group.words|join(',') }} - {{ group.similarityType }}
+        <a >
+        <a href="/delete/similar-words/{{ group['_id'] }}">Delete</a>
         <button class="delete-btn" data-group-id="{{ group['_id'] }}" type="button" onclick="deleteWordGroup(this.getAttribute('data-group-id'));">Delete</button>
     </li>
     {% else %}
