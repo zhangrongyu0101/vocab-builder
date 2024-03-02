@@ -1,5 +1,5 @@
 {% block content %}
-
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <h1>Similar Words</h1>
 <a href="{{ url_for('words_bp.index') }}"> back</a>
 <!-- 新增加相似单词组的表单 -->
@@ -7,8 +7,8 @@
 <form action="{{ url_for('similar_words.add_similar_words') }}" method="POST">
     <input type="text" name="words" placeholder="Enter words, separated, by, commas" required>
     <select name="similarityType">
-        <option value="formal">Formal</option>
         <option value="semantic">Semantic</option>
+        <option value="formal">Formal</option>
     </select>
     <button type="submit">Add Group</button>
 </form>
@@ -18,11 +18,18 @@
 <h2>Similar Word Groups</h2>
 <ul>
     {% for group in word_groups %}
-    <li>
-        {{ group.words|join(',') }} - {{ group.similarityType }}
-        <a >
+    <li class="word-group">
+        <strong>Similarity Type:</strong> {{ group.similarityType }}
+        <ul>
+            {% for word_detail in group.words %}
+            <li class="word-detail">
+                <strong>Word:</strong> {{ word_detail.word }},
+                <strong>Translation:</strong> {{ word_detail.translation }},
+                <strong>Usage:</strong> {{ word_detail.usage }}
+            </li>
+            {% endfor %}
+        </ul>
         <a href="/delete/similar-words/{{ group['_id'] }}">Delete</a>
-        <button class="delete-btn" data-group-id="{{ group['_id'] }}" type="button" onclick="deleteWordGroup(this.getAttribute('data-group-id'));">Delete</button>
     </li>
     {% else %}
     <li>No similar word groups added yet!</li>

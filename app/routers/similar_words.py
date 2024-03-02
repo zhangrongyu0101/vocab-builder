@@ -7,36 +7,55 @@ from flask import jsonify
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 from flask import Blueprint
+import re
 # 定义蓝图
 similar_words_bp = Blueprint('similar_words', __name__)
 
 # # 使用蓝图定义路由
-# @similar_words_bp.route('/similar-words', methods=['GET'])
-# def similar_words():
-#     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#         word_groups = mongo.db.similar_words.find({})
-#         word_groups_list = list(word_groups)
-#         for group in word_groups_list:
-#             group["_id"] = str(group["_id"])
-#         return jsonify(word_groups_list)
-#     else:
-#         # 在渲染模板前获取所有相似单词组
-#         word_groups = mongo.db.similar_words.find({})
-#         word_groups_list = [group for group in word_groups]
-#         for group in word_groups_list:
-#             group["_id"] = str(group["_id"])
-#         # 将所有相似单词组传递给模板
-#         return render_template('similar_words.html', word_groups=word_groups_list)
+
 @similar_words_bp.route('/similar-words')
 def similar_words():
-    # 获取所有相似单词组
     word_groups = mongo.db.similar_words.find({}).sort('_id', -1)
-    word_groups_list = [group for group in word_groups]
-    for group in word_groups_list:
-        group["_id"] = str(group["_id"])  # 确保 MongoDB 的 ObjectId 能在模板中正确显示
+    word_groups_list = []
 
-    # 将所有相似单词组传递给模板进行渲染
+    for group in word_groups:
+        group_detail = {
+            'words': [],
+            'similarityType': group['similarityType'],
+            '_id': str(group['_id'])
+        }
+        
+        for word in group['words']:
+            word_info = mongo.db.words.find_one({'word': word})
+            if word_info:
+                # 假设 word_info 包含 'translation' 和 'usage' 字段
+                group_detail['words'].append({
+                    'word': word,
+                    'translation': word_info.get('translation', 'No translation found'),
+                    'usage': word_info.get('usage', 'No usage found')
+                })
+            else:
+                # 没有找到单词信息的情况
+                group_detail['words'].append({
+                    'word': word,
+                    'translation': 'No translation found',
+                    'usage': 'No usage found'
+                })
+        
+        word_groups_list.append(group_detail)
+
     return render_template('similar_words.html', word_groups=word_groups_list)
+
+# @similar_words_bp.route('/similar-words')
+# def similar_words():
+#     # 获取所有相似单词组
+#     word_groups = mongo.db.similar_words.find({}).sort('_id', -1)
+#     word_groups_list = [group for group in word_groups]
+#     for group in word_groups_list:
+#         group["_id"] = str(group["_id"])  # 确保 MongoDB 的 ObjectId 能在模板中正确显示
+
+    # # 将所有相似单词组传递给模板进行渲染
+    # return render_template('similar_words.html', word_groups=word_groups_list)
 
 
 @similar_words_bp.route('/add/similar-words', methods=['POST'])
@@ -49,7 +68,7 @@ def add_similar_words():
         # 你可能想要重定向用户到一个错误页面或显示一个错误消息
         return jsonify({'error': 'Missing data'}), 400
     
-    words = [word.strip() for word in words_str.split(',')]
+    words = [word.strip() for word in re.split('[,，;；]', words_str) if word.strip()]
     data = {'words': words, 'similarityType': similarityType}
     
     try:

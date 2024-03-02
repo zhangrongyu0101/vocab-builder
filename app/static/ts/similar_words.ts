@@ -91,6 +91,22 @@ function closeModal(): void {
     modal.style.display = 'none';
 }
 
+function fetchWordInfo(word:string) {
+    fetch(`/get-word-info?word=${encodeURIComponent(word)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Word info:', data);
+            // 在这里处理和显示单词信息
+        })
+        .catch(error => {
+            console.error('Error fetching word info:', error);
+        });
+}
 
 
 // 绑定事件

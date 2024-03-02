@@ -14,11 +14,12 @@ def index():
 
 @words_bp.route('/add', methods=['POST'])
 def add_word():
-    word = request.form.get('word')
+    # 获取表单数据并去除word的前后空格
+    word = request.form.get('word').strip() if request.form.get('word') else None
     translation = request.form.get('translation')
     usage = request.form.get('usage')
 
-    if word:  # 只检查是否提供了单词
+    if word:  # 检查是否提供了单词且单词不为空（前后空格已被去除）
         # 即使没有提供翻译和用法，也插入单词
         mongo.db.words.insert_one({
             'word': word, 
@@ -31,6 +32,7 @@ def add_word():
         flash('Word cannot be empty!')  # 修改了错误消息以反映新的验证逻辑
 
     return redirect(url_for('words_bp.index'))
+
 
 
 
@@ -66,4 +68,22 @@ def increment_dictation_count(word_id):
         {'$inc': {'dictation_count': 1}}
     )
     return jsonify({'message': 'Dictation count incremented successfully'})
+
+
+@words_bp.route('/get-word-info', methods=['GET'])
+def get_word_info():
+    word = request.args.get('word')  # 从查询参数中获取单词
+
+    if not word:
+        return jsonify({'error': 'Word parameter is required.'}), 400
+
+    word_info = mongo.db.words.find_one({'word': word})
+
+    if not word_info:
+        return jsonify({'error': 'Word not found.'}), 404
+
+    # 从数据库记录中移除 MongoDB 的 _id 字段
+    word_info.pop('_id', None)
+
+    return jsonify(word_info)
 
