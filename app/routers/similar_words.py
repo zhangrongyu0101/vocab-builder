@@ -18,6 +18,14 @@ def similar_words():
     word_groups = mongo.db.similar_words.find({}).sort('_id', -1)
     word_groups_list = []
 
+    # 收集所有单词以进行批量查询
+    all_words = set(word for group in word_groups for word in group['words'])
+    words_info = mongo.db.words.find({'word': {'$in': list(all_words)}})
+    words_info_dict = {info['word']: info for info in words_info}
+
+    # 重置游标
+    word_groups.rewind()
+
     for group in word_groups:
         group_detail = {
             'words': [],
@@ -26,13 +34,13 @@ def similar_words():
         }
         
         for word in group['words']:
-            word_info = mongo.db.words.find_one({'word': word})
+            word_info = words_info_dict.get(word)
             if word_info:
-                # 假设 word_info 包含 'translation' 和 'usage' 字段
                 group_detail['words'].append({
                     'word': word,
                     'translation': word_info.get('translation', 'No translation found'),
-                    'usage': word_info.get('usage', 'No usage found')
+                    'usage': word_info.get('usage', 'No usage found'),
+                    '_id': str(word_info.get('_id', 'No _id found'))
                 })
             else:
                 # 没有找到单词信息的情况
@@ -46,16 +54,7 @@ def similar_words():
 
     return render_template('similar_words.html', word_groups=word_groups_list)
 
-# @similar_words_bp.route('/similar-words')
-# def similar_words():
-#     # 获取所有相似单词组
-#     word_groups = mongo.db.similar_words.find({}).sort('_id', -1)
-#     word_groups_list = [group for group in word_groups]
-#     for group in word_groups_list:
-#         group["_id"] = str(group["_id"])  # 确保 MongoDB 的 ObjectId 能在模板中正确显示
 
-    # # 将所有相似单词组传递给模板进行渲染
-    # return render_template('similar_words.html', word_groups=word_groups_list)
 
 
 @similar_words_bp.route('/add/similar-words', methods=['POST'])
@@ -80,26 +79,36 @@ def add_similar_words():
         return jsonify({'error': 'Failed to add similar words', 'exception': str(e)}), 500
 
 
-@similar_words_bp.route('/edit/similar-words/<id>', methods=['POST']) 
-def update_similar_words(id):
-    # 假设通过表单隐藏字段传递了ID
-    words_str = request.form.get('words')
-    similarityType = request.form.get('similarityType')
-    
-    if not words_str or not similarityType:
-        return jsonify({'error': 'Missing data'}), 400
-    
-    words = [word.strip() for word in words_str.split(',')]
-    data = {'words': words, 'similarityType': similarityType}
-    
-    try:
-        # 更新指定ID的相似单词组
-        result = mongo.db.similar_words.update_one({'_id': ObjectId(id)}, {'$set': data})
-        if result.modified_count == 0:
-            return jsonify({'error': 'No records updated'}), 404
+@similar_words_bp.route('/edit/similar-words/<group_id>')
+def edit_similar_words(group_id):
+    group = mongo.db.similar_words.find_one({'_id': ObjectId(group_id)})
+    if group is None:
+        flash('Similar word group not found.', 'error')
         return redirect(url_for('similar_words.similar_words'))
-    except Exception as e:
-        return jsonify({'error': 'Failed to update similar words', 'exception': str(e)}), 500
+
+    # 如果找到相似单词组，渲染编辑页面
+    return render_template('edit_similar_words.html', group=group)
+
+
+
+@similar_words_bp.route('/update/similar-words/<group_id>', methods=['POST'])
+def update_similar_words(group_id):
+    # 从表单获取数据
+    words_str = request.form.get('words')
+    words = [word.strip() for word in re.split('[,，;；]', words_str) if word.strip()]
+    similarityType = request.form.get('similarityType')
+
+    # 更新数据库记录
+    mongo.db.similar_words.update_one(
+        {'_id': ObjectId(group_id)},
+        {'$set': {
+            'words': words,
+            'similarityType': similarityType
+        }}
+    )
+    flash('Similar word group updated successfully!')
+    return redirect(url_for('similar_words.similar_words'))
+
 
     
 @similar_words_bp.route('/delete/similar-words/<groupId>')

@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <h1>Similar Words</h1>
@@ -23,12 +25,14 @@
         <ul>
             {% for word_detail in group.words %}
             <li class="word-detail">
-                <strong>Word:</strong> {{ word_detail.word }},
-                <strong>Translation:</strong> {{ word_detail.translation }},
-                <strong>Usage:</strong> {{ word_detail.usage }}
+                {{ word_detail.word }} - {{ word_detail.translation }}
+                <div class="word-usage">Usage: {{ word_detail.usage }}</div>
+                <a href="/edit/{{ word_detail._id }}">Edit</a>
+                <button onclick="playPronunciation('{{ word_detail.word }}')">Play</button>
             </li>
             {% endfor %}
         </ul>
+        <a href="/edit/similar-words/{{ group['_id'] }}">Edit</a>
         <a href="/delete/similar-words/{{ group['_id'] }}">Delete</a>
     </li>
     {% else %}
@@ -39,5 +43,15 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/similar_words.js') }}"></script>
+<script>
+
+function playPronunciation(word) {
+    const lang = 'en'; // 或根据需要调整语言
+    const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
+    const audio = new Audio(audioSrc);
+    audio.play().catch(error => console.error('Playback failed:', error));
+}
+
+</script>
+
 {% endblock %}

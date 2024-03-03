@@ -108,6 +108,12 @@ function fetchWordInfo(word:string) {
         });
 }
 
+function playPronunciation(word:string) {
+    const lang = 'en'; // 或根据需要调整语言
+    const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
+    const audio = new Audio(audioSrc);
+    audio.play().catch(error => console.error('Playback failed:', error));
+}
 
 // 绑定事件
 document.addEventListener('DOMContentLoaded', () => {

@@ -34,8 +34,6 @@ def add_word():
     return redirect(url_for('words_bp.index'))
 
 
-
-
 @words_bp.route('/edit/<word_id>')
 def edit_word(word_id):
     word = mongo.db.words.find_one({'_id': ObjectId(word_id)})

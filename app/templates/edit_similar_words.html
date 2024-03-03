@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Edit Similar Word Group</h1>
+    <form id="editSimilarWordGroupForm">
+        <input type="text" name="words" value="{{ group.words|join(',') }}" required>
+        <select name="similarityType">
+            <option value="formal" {% if group.similarityType == 'formal' %}selected{% endif %}>Formal</option>
+            <option value="semantic" {% if group.similarityType == 'semantic' %}selected{% endif %}>Semantic</option>
+        </select>
+        <button type="submit">Update Group</button>
+    </form>
+
+    <!-- 添加jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#editSimilarWordGroupForm').submit(function(event) {
+                event.preventDefault(); // 阻止表单默认提交行为
+                var formData = $(this).serialize(); // 序列化表单数据
+                
+                $.ajax({
+                    type: "POST",
+                    url: "/update/similar-words/{{ group['_id'] }}",
+                    data: formData,
+                    success: function(response) {
+                        // 显示更新成功消息
+                        alert("Similar word group updated successfully");
+                        // 可能还想重定向到相似单词组列表页面或其他页面
+                        window.location.href = '/similar-words';
+                    },
+                    error: function() {
+                        // 显示更新失败消息
+                        alert("Failed to update similar word group");
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

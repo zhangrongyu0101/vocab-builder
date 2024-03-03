@@ -99,6 +99,12 @@ function fetchWordInfo(word) {
         console.error('Error fetching word info:', error);
     });
 }
+function playPronunciation(word) {
+    const lang = 'en'; // 或根据需要调整语言
+    const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
+    const audio = new Audio(audioSrc);
+    audio.play().catch(error => console.error('Playback failed:', error));
+}
 // 绑定事件
 document.addEventListener('DOMContentLoaded', () => {
     const addWordGroupBtn = getElementById('addWordGroupBtn');
