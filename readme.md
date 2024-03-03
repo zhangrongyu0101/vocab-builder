@@ -1,5 +1,5 @@
 # Vocab Builder
-
+# Powered by GPT-4
 ![Vocab Builder Logo](./logo.png)
 
 Vocab Builder是一个帮助用户通过听写方式学习新单词的Web应用。该应用支持单词的添加、编辑、删除功能，并且能够跟踪每个单词的听写次数，优先让用户练习那些听写次数较少的单词。

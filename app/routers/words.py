@@ -19,17 +19,23 @@ def add_word():
     translation = request.form.get('translation')
     usage = request.form.get('usage')
 
-    if word:  # 检查是否提供了单词且单词不为空（前后空格已被去除）
-        # 即使没有提供翻译和用法，也插入单词
-        mongo.db.words.insert_one({
-            'word': word, 
-            'translation': translation, 
-            'usage': usage, 
-            'dictation_count': 0
-        })
-        flash('Word added successfully!')
+    if word:
+        # 检查数据库中是否已存在该单词
+        existing_word = mongo.db.words.find_one({'word': word})
+        if existing_word:
+            # 如果单词已存在，给用户反馈
+            flash(f'The word "{word}" already exists.')
+        else:
+            # 如果单词不存在，插入新单词
+            mongo.db.words.insert_one({
+                'word': word,
+                'translation': translation,
+                'usage': usage,
+                'dictation_count': 0
+            })
+            flash('Word added successfully!')
     else:
-        flash('Word cannot be empty!')  # 修改了错误消息以反映新的验证逻辑
+        flash('Word cannot be empty!')
 
     return redirect(url_for('words_bp.index'))
 
