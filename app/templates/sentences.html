@@ -1,0 +1,50 @@
+<!-- sentences.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<h1>Sentences</h1>
+<a href="{{ url_for('words_bp.index') }}"> back</a>
+
+<!-- 新增句子的表单 -->
+<h2>Add New Sentence</h2>
+<form action="{{ url_for('sentences_bp.add_sentence') }}" method="POST">
+    <div class="form-group">
+        <label for="sentence">Sentence:</label>
+        <input type="text" id="sentence" name="sentence" placeholder="Enter the sentence" required>
+    </div>
+    <div class="form-group">
+        <label for="translation">Translation:</label>
+        <input type="text" id="translation" name="translation" placeholder="Enter the translation">
+    </div>
+    <div class="form-group">
+        <label for="keywords">Keywords:</label>
+        <input type="text" id="keywords" name="keywords" placeholder="Enter keywords, separated by commas">
+    </div>
+    <div class="form-group">
+        <label for="usage">Usage:</label>
+        <!-- 移除了 required 属性和 value 属性，因为这是添加新句子的表单，不需要预填充数据 -->
+        <input type="text" id="usage" name="usage" placeholder="Enter usage">
+    </div>
+    <button type="submit" class="btn">Add Sentence</button>
+</form>
+<!-- 显示句子列表 -->
+<h2>Sentence List</h2>
+<ul>
+    {% for sentence in sentences %}
+    <li>
+        <strong>{{ sentence.sentence }}</strong> - {{ sentence.translation }}
+        <br>
+        Keywords: {{ sentence.keywords | join(", ") }}
+        <br>
+        <br>
+        Usage: {{ sentence.usage }}  <!-- 显示用法 -->
+        <br>
+        <a href="{{ url_for('sentences_bp.edit_sentence', sentence_id=sentence._id) }}">Edit</a>
+        <a href="{{ url_for('sentences_bp.delete_sentence', sentence_id=sentence._id) }}" onclick="return confirm('Are you sure?')">Delete</a>
+    </li>
+    {% else %}
+    <li>No sentences added yet!</li>
+    {% endfor %}
+</ul>
+{% endblock %}
