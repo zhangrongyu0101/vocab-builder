@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.models.user import User
 from app import mongo
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user
+from flask_login import login_user, logout_user
 
 auth_bp = Blueprint('auth_bp', __name__)
 
@@ -45,3 +45,8 @@ def login():
         return redirect(url_for('words_bp.index'))
 
     return render_template('login.html')
+
+@auth_bp.route('/logout')
+def logout():
+    logout_user()  # Logs out the user
+    return redirect(url_for('words_bp.index'))  # Redirects to the login page
