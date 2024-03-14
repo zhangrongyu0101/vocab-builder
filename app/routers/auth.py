@@ -34,13 +34,13 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = mongo.db.users.find_one({'username': username})
-        if not user or not check_password_hash(user['password'], password):
+        user_doc = mongo.db.users.find_one({'username': username})
+        if not user_doc or not check_password_hash(user_doc['password'], password):
             flash('Please check your login details and try again.')
-            return redirect(url_for('auth_bp.login')) # 如果用户不存在或密码不正确，则重新定向到登录页面
+            return redirect(url_for('auth_bp.login'))  # 如果用户不存在或密码不正确，则重新定向到登录页面
 
-        # 登录用户
-        user_obj = User(username=user['username'], email=user['email'], password=password)
+        # 创建用户对象，确保包括数据库中的用户ID
+        user_obj = User(username=user_doc['username'], email=user_doc['email'], password=user_doc['password'], _id=user_doc['_id'])
         login_user(user_obj, remember=True)
         return redirect(url_for('words_bp.index'))
 

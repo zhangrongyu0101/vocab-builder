@@ -48,9 +48,16 @@ def create_app():
     # Flask-Login 用户加载器
     @login_manager.user_loader
     def load_user(user_id):
-        user = mongo.db.users.find_one({"_id": ObjectId('65ed4977413a6e6063965b8e')})
-        if user:
-            return User(username=user['username'], email=user['email'], password=user['password'])
+        if user_id is None:
+            return None
+        try:
+            # 尝试将 user_id 转换为 ObjectId，并从数据库查找用户
+            user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+            if user:
+                return User(username=user['username'], email=user['email'], password=user['password'], _id=user['_id'])
+        except Exception as e:
+            # 这里可以记录日志或者处理异常
+            print(e)
         return None
 
     return app

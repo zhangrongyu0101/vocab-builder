@@ -1,7 +1,9 @@
 # 听写相关功能
-from flask import Blueprint, jsonify, current_app,render_template
-import random
+from flask import Blueprint, jsonify, request, render_template, current_app
+from flask_login import login_required, current_user
 from app import mongo
+from bson.objectid import ObjectId
+import random
 
 dictation_bp = Blueprint('dictation_bp', __name__)
 
@@ -21,15 +23,24 @@ def dictation():
 
 @dictation_bp.route('/check-word', methods=['POST'])
 def check_word():
-    data = request.get_json()  # 使用 get_json 方法
+    data = request.get_json()  
     input_word = data.get('inputWord')
     correct_word = data.get('correctWord')
-    
-    # 这里添加你的逻辑来检查单词是否正确
-    if input_word.lower() == correct_word.lower():
-        return jsonify({'message': 'Correct!'})
+    if current_user.is_authenticated:
+        user_id = ObjectId(current_user.get_id())  # 确保从字符串转换为ObjectId
+        if input_word.lower() == correct_word.lower():
+            # 用户答对了，加3分
+            mongo.db.users.update_one({'_id': user_id}, {'$inc': {'points': 3}})
+            return jsonify({'message': 'Correct!'})
+        else:
+            # 用户答错了，减1分
+            mongo.db.users.update_one({'_id': user_id}, {'$inc': {'points': -1}})
+            return jsonify({'message': 'Incorrect, try again.'})
     else:
-        return jsonify({'message': 'Incorrect, try again.'})
+        if input_word.lower() == correct_word.lower():
+            return jsonify({'message': 'Correct!'})
+        else:
+            return jsonify({'message': 'Incorrect, try again.'})
 
 
 @dictation_bp.route('/new-word', methods=['GET'])
@@ -48,3 +59,21 @@ def new_word():
         })
     else:
         return jsonify({'error': 'No words available'}), 404
+    
+@dictation_bp.route('/increment-dictation-count/<word_id>', methods=['POST'])
+def increment_dictation_count(word_id):
+    mongo.db.words.update_one(
+        {'_id': ObjectId(word_id)},
+        {'$inc': {'dictation_count': 1}}
+    )
+    return jsonify({'message': 'Dictation count incremented successfully'})
+
+@dictation_bp.route('/get-points', methods=['GET'])
+@login_required
+def get_points():
+    user_id = current_user.get_id()
+    user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+    if user:
+        return jsonify({'points': user.get('points', 0)})  # 返回用户的分数，如果没有找到则默认为0
+    else:
+        return jsonify({'error': 'User not found'}), 404

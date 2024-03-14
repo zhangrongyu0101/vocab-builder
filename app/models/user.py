@@ -30,9 +30,8 @@ class User(UserMixin):
         return False
 
     def get_id(self):
-        # Flask-Login 使用 Unicode 字符串作为用户的唯一标识符
-        # 如果你的 MongoDB 使用 ObjectId，需要将其转换成字符串
-        return str(self._id)
+        # 确保 _id 不是 None
+        return str(self._id) if self._id else None
 
     @staticmethod
     def create_user(username, email, password):

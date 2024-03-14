@@ -3,6 +3,9 @@ from flask import Blueprint, request, redirect, url_for, flash
 from flask_pymongo import ObjectId
 from flask import current_app, render_template
 from app import mongo
+from flask import render_template
+from flask_login import login_required, current_user
+from bson.objectid import ObjectId
 
 words_bp = Blueprint('words_bp', __name__)
 
@@ -10,7 +13,14 @@ words_bp = Blueprint('words_bp', __name__)
 def index():
     # 使用 _id 字段逆序排序单词
     words_list = list(mongo.db.words.find().sort('_id', -1))
-    return render_template('index.html', words=words_list)
+    user_score = 0  # 默认分数
+    if current_user.is_authenticated:
+        user_id = current_user.get_id()
+        user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+        if user:
+            user_score = user.get('points', 0)  # 获取分数，如果未找到则默认为0
+
+    return render_template('index.html', words=words_list, user_score=user_score)
 
 @words_bp.route('/add', methods=['POST'])
 def add_word():
@@ -64,14 +74,6 @@ def delete_word(word_id):
     flash('Word deleted successfully!')
     return redirect(url_for('words_bp.index'))
 
-
-@words_bp.route('/increment-dictation-count/<word_id>', methods=['POST'])
-def increment_dictation_count(word_id):
-    mongo.db.words.update_one(
-        {'_id': ObjectId(word_id)},
-        {'$inc': {'dictation_count': 1}}
-    )
-    return jsonify({'message': 'Dictation count incremented successfully'})
 
 
 @words_bp.route('/get-word-info', methods=['GET'])

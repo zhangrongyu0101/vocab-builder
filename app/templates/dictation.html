@@ -5,6 +5,7 @@
 
 
 <h1>Dictation</h1>
+<p id="currentScore">Current Score: <span>0</span></p>
 {% if dictation_prompt %}
 
     <a href="/edit/{{ dictation_prompt['_id'] }}">Edit</a>
@@ -16,7 +17,6 @@
 
     <input type="text" id="dictationInput" placeholder="Type the English word">
     <button id="checkWord">Check</button>
-    <button id="nextWord" style="display:none;">Next</button> <!-- 新增的Next按钮 -->
     <p id="feedback"></p>
     <!-- 新增的用法显示区域 -->
     <div id="usage" style="max-width:100%; overflow-wrap:break-word; margin-top:20px;"></div> <!-- 用于显示用法的元素 -->
@@ -31,6 +31,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        updateScore(); 
         const input = document.getElementById('dictationInput');
         const checkButton = document.getElementById('checkWord');
         let correctAnswerGiven = false; // 用于标记是否已经给出了正确答案
@@ -74,23 +75,43 @@
             const correctWord = document.getElementById('correctWord').value;
             // 从隐藏的input元素获取单词ID
             const wordId = document.getElementById('dbId').value;
-    
-            if (!correctAnswerGiven) {
-                if (inputWord.toLowerCase() === correctWord.toLowerCase()) {
-                    document.getElementById('feedback').textContent = 'Correct!';
-                    document.getElementById('usage').innerHTML = `<strong>Usage:</strong> ${document.getElementById('wordUsage').value}`;
-                    correctAnswerGiven = true;
-                    incrementDictationCount(wordId);
-                } else {
-                    document.getElementById('feedback').textContent = `Incorrect, try again. The correct word was: ${correctWord}.`;
-                    document.getElementById('usage').textContent = '';
-                }
-            } else {
-                // 如果已经给出了正确答案，则直接加载新单词
-                loadNewWord();
+            // 构建请求体
+            const data = { inputWord: inputWord, correctWord: correctWord };
+            if (!correctAnswerGiven){
+                fetch('/check-word', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Correct!') {
+                        // 用户答对了，显示用法，播放读音，然后加载新单词
+                        document.getElementById('feedback').textContent = 'Correct!';
+                        document.getElementById('usage').innerHTML = `<strong>Usage:</strong> ${document.getElementById('wordUsage').value}`;
+                        correctAnswerGiven = true;
+                        updateScore(); 
+                        incrementDictationCount(wordId); // 增加听写次数
+                        return;
+                    } else {
+                        // 用户答错了，显示正确答案，不自动加载新单词，但仍然播放读音
+                        document.getElementById('feedback').textContent = `Incorrect. The correct word is: ${correctWord}. Try again.`;
+                        document.getElementById('usage').textContent = ''; // 可选：清除用法信息
+                        updateScore(); 
+                        fetchTranslationAndPronunciation(); // 播放当前单词的读音
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('feedback').textContent = 'Error checking word. Please try again.';
+                });
+            }else {
+                loadNewWord(); // 加载新单词
             }
         }
-    
+
         function loadNewWord() {
             fetch('/new-word')
             .then(response => {
@@ -122,8 +143,18 @@
                 console.error('Error:', error);
                 document.getElementById('feedback').textContent = 'Failed to load new word. Please try again.';
             });
+            updateScore();
         }
         
+        function updateScore() {
+            fetch('/get-points')
+            .then(response => response.json())
+            .then(data => {
+                // 确保这里使用的字段名与后端返回的JSON对象中的字段名一致
+                document.getElementById('currentScore').querySelector('span').textContent = data.points;
+            })
+            .catch(error => console.error('Error fetching score:', error));
+        }
     
         checkButton.addEventListener('click', function(e) {
             e.preventDefault();
