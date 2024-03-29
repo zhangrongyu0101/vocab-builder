@@ -4,9 +4,10 @@
 
 
 <div class="header">
-    <h1>Vocab Builder
+    <div class="title">
+        <h1 style="font-family: 'MyCustomFont', sans-serif;">Vocab Builder</h1>
         <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vocab Builder Logo" width="150">
-    </h1>
+    </div>
     <!-- 用户登录状态显示 -->
     <div class="user-info">
         {% if current_user.is_authenticated %}
@@ -56,59 +57,59 @@
     {% endfor %}
 </ul>
 
-    <!-- avaScript代码 -->
-    <script>
 
-        function playPronunciation(word) {
-            const lang = 'en'; // 或根据需要调整语言
-            const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
-            const audio = new Audio(audioSrc);
-            audio.play().catch(error => console.error('Playback failed:', error));
-        }
-        
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-                const inputs = Array.from(document.querySelectorAll('.input-Failed')); // 仅选择带有'required'类的输入字段
-                const activeElement = document.activeElement;
-                const currentIndex = inputs.indexOf(activeElement);
-                if (event.key === 'ArrowRight') {
-                    const nextIndex = (currentIndex + 1) % inputs.length;
-                    inputs[nextIndex].focus();
-                } else if (event.key === 'ArrowLeft') {
-                    const prevIndex = (currentIndex - 1 + inputs.length) % inputs.length;
-                    inputs[prevIndex].focus();
-                }
-            }
-        });
+    <!-- avaScript代码 -->
+<script>
+    function playPronunciation(word) {
+        const lang = 'en'; // 或根据需要调整语言
+        const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
+        const audio = new Audio(audioSrc);
+        audio.play().catch(error => console.error('Playback failed:', error));
+    }
     
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-        
-            const formData = new FormData();
-            const fileInput = document.getElementById('csvFile');
-            formData.append('file', fileInput.files[0]);
-        
-            fetch('/import-words', {
-                method: 'POST',
-                body: formData,
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to upload');
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('uploadFeedback').textContent = 'Upload successful!';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('uploadFeedback').textContent = 'Upload failed. Please try again.';
-            });
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+            const inputs = Array.from(document.querySelectorAll('.input-Failed')); // 仅选择带有'required'类的输入字段
+            const activeElement = document.activeElement;
+            const currentIndex = inputs.indexOf(activeElement);
+            if (event.key === 'ArrowRight') {
+                const nextIndex = (currentIndex + 1) % inputs.length;
+                inputs[nextIndex].focus();
+            } else if (event.key === 'ArrowLeft') {
+                const prevIndex = (currentIndex - 1 + inputs.length) % inputs.length;
+                inputs[prevIndex].focus();
+            }
+        }
+    });
+
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+    
+        const formData = new FormData();
+        const fileInput = document.getElementById('csvFile');
+        formData.append('file', fileInput.files[0]);
+    
+        fetch('/import-words', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to upload');
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('uploadFeedback').textContent = 'Upload successful!';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('uploadFeedback').textContent = 'Upload failed. Please try again.';
         });
+    });
 
             
-    </script>
+</script>
 {% endblock %}
 
 

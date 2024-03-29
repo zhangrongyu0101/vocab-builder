@@ -1,4 +1,13 @@
 /* styles.css */
+.title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 0 auto; 
+}
+
 .usage-input {
     display: block;
     width: 100%;
@@ -104,9 +113,6 @@ a:hover {
     text-decoration: underline;
 }
 
-h1, h2 {
-    color: #444;
-}
 
 form {
     background-color: #fff;
@@ -141,18 +147,6 @@ button[type="submit"]:hover {
     background-color: #45a049;
 }
 
-ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-li {
-    background-color: #fff;
-    margin: 10px 0;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
 
 .word-group {
     margin-bottom: 10px;
