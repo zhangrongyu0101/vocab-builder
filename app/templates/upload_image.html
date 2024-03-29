@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Upload Image for "{{ word.word }}"</h1>
+<!-- 单词详情 -->
+<p>Translation: {{ word.translation }}</p>
+<p>Usage: {{ word.usage }}</p>
+
+<form action="{{ url_for('words_bp.upload_image_for_word', word_id=word_id) }}" method="post" enctype="multipart/form-data">
+    <label for="image">Select image:</label>
+    <input type="file" id="image" name="image" accept="image/*" required><br><br>
+    <button type="submit">Upload Image</button>
+</form>
+
+<!-- 显示已上传的图片 -->
+{% if images %}
+    <h2>Existing Images</h2>
+    {% for image in images %}
+    <div class="image-container">
+        <img src="data:image/jpeg;base64,{{ image.data }}" alt="Word image">
+        <button onclick="deleteImage('{{ word_id }}', '{{ image.id }}')">Delete</button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<script>
+    function deleteImage(wordId, imageId) {
+        if (confirm("Are you sure you want to delete this image?")) {
+            fetch(`/word/${wordId}/delete-image/${imageId}`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Optionally refresh the page to show the updated image list
+                window.location.reload();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    }
+</script>
+    
+{% endblock %}
+
+

@@ -46,6 +46,7 @@
         <div class="word-usage">Usage: {{ word['usage'] }}</div>
         <span>Dictation Count: {{ word['dictation_count'] }}</span>
         <a href="/edit/{{ word['_id'] }}">Edit</a>
+        <a href="/word/upload-image/{{ word['_id'] }}" class="upload-image-btn">Upload Image</a>
         <a href="/delete/{{ word['_id'] }}">Delete</a>
         <!-- 添加播放按钮 -->
         <button onclick="playPronunciation('{{ word['word'] }}')">Play</button>

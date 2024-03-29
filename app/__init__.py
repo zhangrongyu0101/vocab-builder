@@ -5,6 +5,8 @@ from flask_login import LoginManager
 from bson.objectid import ObjectId 
 from .models.user import User
 from config import config
+from pymongo import MongoClient
+import gridfs
 
 # 在这里创建并初始化 PyMongo 实例
 mongo = PyMongo()
@@ -21,6 +23,7 @@ def create_app():
 
     # 初始化 Flask-Login 与当前应用
     login_manager.init_app(app)
+    
 
     # 导入蓝图，避免循环导入
     from .routers.auth import auth_bp

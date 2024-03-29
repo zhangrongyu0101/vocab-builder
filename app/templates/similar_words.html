@@ -27,7 +27,7 @@
             <li class="word-detail">
                 {{ word_detail.word }} - {{ word_detail.translation }}
                 <div class="word-usage">Usage: {{ word_detail.usage }}</div>
-                <a href="/edit/{{ word_detail._id }}">Edit</a>
+                <a href="/edit_by_word/{{ word_detail.word }}">Edit</a>
                 <button onclick="playPronunciation('{{ word_detail.word }}')">Play</button>
             </li>
             {% endfor %}
