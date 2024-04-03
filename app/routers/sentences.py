@@ -11,6 +11,13 @@ def sentences():
     sentences_list = list(mongo.db.sentences.find().sort('_id', -1))
     return render_template('sentences.html', sentences=sentences_list)
 
+@sentences_bp.route('/count/sentences', methods=['GET'])
+def count_sentences():
+    # 统计数据库中单词的数量
+    count = mongo.db.sentences.count_documents({})
+    # 返回单词数量的JSON响应
+    return jsonify({'sentences_count': count})
+
 @sentences_bp.route('/sentences/add', methods=['POST'])
 def add_sentence():
     sentence = request.form.get('sentence').strip() if request.form.get('sentence') else None

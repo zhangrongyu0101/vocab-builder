@@ -56,6 +56,12 @@ def similar_words():
 
 
 
+@similar_words_bp.route('/count/similar-words', methods=['GET'])
+def count_similar_words():
+    # 统计数据库中单词的数量
+    count = mongo.db.similar_words.count_documents({})
+    # 返回单词数量的JSON响应
+    return jsonify({'similar_words_count': count})
 
 @similar_words_bp.route('/add/similar-words', methods=['POST'])
 def add_similar_words():

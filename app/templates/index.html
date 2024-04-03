@@ -7,17 +7,18 @@
     <div class="title">
         <h1 style="font-family: 'MyCustomFont', sans-serif;">Vocab Builder</h1>
         <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vocab Builder Logo" width="150">
+        <p style="font-family: 'MyCustomFont', sans-serif;">Total Words: {{ word_count }}</p>
+        {% if current_user.is_authenticated %}
+            <span style="font-family: 'MyCustomFont', sans-serif;">Points: {{ user_score }}</span>
+        <a href="{{ url_for('auth_bp.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('auth_bp.login') }}">Login</a> |
+            <a href="{{ url_for('auth_bp.register') }}">Register</a>
+        {% endif %}
     </div>
     <!-- 用户登录状态显示 -->
     <div class="user-info">
-        {% if current_user.is_authenticated %}
-        <span>Welcome, {{ current_user.username }}!</span>
-        <span>Points: {{ user_score }}</span>
-        <a href="{{ url_for('auth_bp.logout') }}">Logout</a>
-        {% else %}
-        <a href="{{ url_for('auth_bp.login') }}">Login</a> |
-        <a href="{{ url_for('auth_bp.register') }}">Register</a>
-        {% endif %}
+
     </div>
 </div>
 
@@ -48,7 +49,7 @@
         <span>Dictation Count: {{ word['dictation_count'] }}</span>
         <a href="/edit/{{ word['_id'] }}">Edit</a>
         <a href="/word/upload-image/{{ word['_id'] }}" class="upload-image-btn">Upload Image</a>
-        <a href="/delete/{{ word['_id'] }}">Delete</a>
+        <a href="/delete/{{ word['_id'] }}" onclick="return confirm('Are you sure you want to delete this?');">Delete</a>
         <!-- 添加播放按钮 -->
         <button onclick="playPronunciation('{{ word['word'] }}')">Play</button>
     </li>

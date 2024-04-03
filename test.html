@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Result</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h2 {
+            color: #007BFF;
+        }
+        .translation-section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+        .translation-section h4 {
+            color: #555;
+            margin-bottom: 10px;
+        }
+        #textToTranslate {
+            width: calc(100% - 120px);
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        #translateBtn {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #translateBtn:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script type="module">
+        import { GoogleTranslator } from "./app/translators/dist/translators.es.mjs";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById("translateBtn").addEventListener("click", async () => {
+                const textToTranslate = document.getElementById("textToTranslate").value;
+                const translator = new GoogleTranslator();
+
+                try {
+                    const result = await translator.translate(textToTranslate, "en", "zh-CN");
+                    document.getElementById("originalText").textContent = result.originalText;
+                    document.getElementById("mainMeaning").textContent = result.mainMeaning;
+                    document.getElementById("sPronunciation").textContent = result.sPronunciation || "N/A";
+                    document.getElementById("tPronunciation").textContent = result.tPronunciation || "N/A";
+
+                    displayList("detailedMeanings", result.detailedMeanings);
+                    displayList("definitions", result.definitions);
+                    displayExamples("examples", result.examples);
+                } catch (error) {
+                    console.error("Translation error:", error);
+                    document.getElementById("translationResult").textContent = "Translation failed.";
+                }
+            });
+        });
+
+        function displayList(elementId, items) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = ''; // Clear previous content
+            if (items) {
+                items.forEach(item => {
+                    const itemEl = document.createElement("li");
+                    itemEl.textContent = `${item.pos || ''} ${item.meaning}`;
+                    container.appendChild(itemEl);
+
+                    if (item.synonyms && item.synonyms.length) {
+                        itemEl.textContent += ` (Synonyms: ${item.synonyms.join(", ")})`;
+                    }
+
+                    if (item.example) {
+                        itemEl.textContent += ` - Example: ${item.example}`;
+                    }
+                });
+            }
+        }
+
+        function displayExamples(elementId, examples) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = ''; // Clear previous content
+            if (examples) {
+                examples.forEach(example => {
+                    const exampleEl = document.createElement("li");
+                    exampleEl.textContent = `Source: ${example.source || 'N/A'} - Target: ${example.target || 'N/A'}`;
+                    container.appendChild(exampleEl);
+                });
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>Translator</h2>
+    <input type="text" id="textToTranslate" placeholder="Enter text to translate">
+    <button id="translateBtn">Translate</button>
+
+    <div id="translationResult">
+        <div class="translation-section">
+            <h4>Original Text</h4>
+            <p id="originalText"></p>
+        </div>
+        <div class="translation-section">
+            <h4>Main Meaning</h4>
+            <p id="mainMeaning"></p>
+        </div>
+        <div class="translation-section">
+            <h4>Source Pronunciation</h4>
+            <p id="sPronunciation"></p>
+        </div>
+        <div class="translation-section">
+            <h4>Target Pronunciation</h4>
+            <p id="tPronunciation"></p>
+        </div>
+        <div class="translation-section">
+            <h4>Detailed Meanings</h4>
+            <ul id="detailedMeanings"></ul>
+        </div>
+        <div class="translation-section">
+            <h4>Definitions</h4>
+            <ul id="definitions"></ul>
+        </div>
+        <div class="translation-section">
+            <h4>Examples</h4>
+            <ul id="examples"></ul>
+        </div>
+    </div>
+</body>
+</html>

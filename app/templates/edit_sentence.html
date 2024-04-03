@@ -20,7 +20,7 @@
     <!-- 在添加/编辑表单中增加用法字段 -->
     <div class="form-group">
         <label for="usage">Usage:</label>
-        <input type="text" id="usage" name="usage" placeholder="Enter usage"  value="{{ sentence.usage if sentence }}">
+        <textarea id="usage" name="usage" placeholder="Enter usage" rows="4" cols="50">{{ sentence.usage if sentence }}</textarea>
     </div>
     <button type="submit" class="btn">Update Sentence</button>
 </form>

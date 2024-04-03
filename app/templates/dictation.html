@@ -3,16 +3,18 @@
 
 {% block content %}
 
+    <div style="font-family: 'MyCustomFont', sans-serif;">
+        <p style="display: inline-block; margin-right: 10px;">Current Score:</p> 
+        <p id="currentScore" style="display: inline-block;">0</p>
+    </div>
 
-<h1>Dictation</h1>
-<p id="currentScore">Current Score: <span>0</span></p>
 {% if dictation_prompt %}
 
     <a href="/edit/{{ dictation_prompt['_id'] }}">Edit</a>
-    <p id="translationPrompt">汉语: <span>{{ dictation_prompt['translation'] }}</span></p>
+    <p id="translationPrompt"><span>{{ dictation_prompt['translation'] }}</span></p>
     
     <!-- google -->
-    <div id="translationResult">翻译结果将显示在这里</div>
+    <div id="translationResult">翻译中</div>
     <audio id="pronunciationAudio" src="" hidden></audio>
 
     <input type="text" id="dictationInput" placeholder="Type the English word">
@@ -30,6 +32,7 @@
 
 
 <script>
+
     document.addEventListener('DOMContentLoaded', function() {
         updateScore(); 
         const input = document.getElementById('dictationInput');
@@ -42,7 +45,7 @@
             .then(response => response.json())
             .then(data => {
                 // 显示翻译结果
-                document.getElementById('translationResult').textContent = `翻译: ${data.translation}`;
+                document.getElementById('translationResult').textContent = `${data.translation}`;
                 // 请求读音
                 return fetch(`/pronounce?text=${word}`);
             })
@@ -150,8 +153,7 @@
             fetch('/get-points')
             .then(response => response.json())
             .then(data => {
-                // 确保这里使用的字段名与后端返回的JSON对象中的字段名一致
-                document.getElementById('currentScore').querySelector('span').textContent = data.points;
+                document.getElementById('currentScore').textContent = data.points;
             })
             .catch(error => console.error('Error fetching score:', error));
         }

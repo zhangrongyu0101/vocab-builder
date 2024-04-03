@@ -23,8 +23,11 @@ def index():
         user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
         if user:
             user_score = user.get('points', 0)  # 获取分数，如果未找到则默认为0
+    
+    count = mongo.db.words.count_documents({})
 
-    return render_template('index.html', words=words_list, user_score=user_score)
+    return render_template('index.html', words=words_list, user_score=user_score, word_count=count)
+
 
 @words_bp.route('/add', methods=['POST'])
 def add_word():

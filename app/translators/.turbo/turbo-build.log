@@ -1,0 +1,10 @@
+@edge_translate/translators:build: cache hit, replaying output [2m79d46cdca72e32df[0m
+[35m@edge_translate/translators:build: [0mwarning package.json: No license field
+[35m@edge_translate/translators:build: [0m$ vite build && tsc --emitDeclarationOnly
+[35m@edge_translate/translators:build: [0m[36mvite v2.9.13 [32mbuilding for production...[36m[39m
+[35m@edge_translate/translators:build: [0mtransforming...
+[35m@edge_translate/translators:build: [0m[32m✓[39m 68 modules transformed.
+[35m@edge_translate/translators:build: [0mrendering chunks...
+[35m@edge_translate/translators:build: [0m[90m[37m[2mdist/[22m[90m[39m[36mtranslators.es.js  [39m [2m50.49 KiB / gzip: 17.35 KiB[22m
+[35m@edge_translate/translators:build: [0m[90m[37m[2mdist/[22m[90m[39m[36mtranslators.umd.js  [39m [2m50.38 KiB / gzip: 17.09 KiB[22m
+[35m@edge_translate/translators:build: [0m[90m[37m[2mdist/[22m[90m[39m[36mtranslators.iife.js  [39m [2m50.19 KiB / gzip: 17.02 KiB[22m

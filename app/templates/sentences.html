@@ -23,8 +23,7 @@
     </div>
     <div class="form-group">
         <label for="usage">Usage:</label>
-        <!-- 移除了 required 属性和 value 属性，因为这是添加新句子的表单，不需要预填充数据 -->
-        <input type="text" id="usage" name="usage" placeholder="Enter usage">
+        <textarea id="usage" name="usage" placeholder="Enter usage" rows="4" cols="50"></textarea>
     </div>
     <button type="submit" class="btn">Add Sentence</button>
 </form>
@@ -37,9 +36,7 @@
         <br>
         Keywords: {{ sentence.keywords | join(", ") }}
         <br>
-        <br>
-        Usage: {{ sentence.usage }}  <!-- 显示用法 -->
-        <br>
+        <div class="word-usage">Usage:{{ sentence.usage }}</div>
         <a href="{{ url_for('sentences_bp.edit_sentence', sentence_id=sentence._id) }}">Edit</a>
         <a href="{{ url_for('sentences_bp.delete_sentence', sentence_id=sentence._id) }}" onclick="return confirm('Are you sure?')">Delete</a>
     </li>

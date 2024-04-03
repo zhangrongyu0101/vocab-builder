@@ -2,6 +2,7 @@
 
 {% block content %}
 <h1>Upload Image for "{{ word.word }}"</h1>
+<a href="{{ url_for('words_bp.index') }}"> back</a>
 <!-- 单词详情 -->
 <p>Translation: {{ word.translation }}</p>
 <p>Usage: {{ word.usage }}</p>
