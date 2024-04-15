@@ -39,9 +39,22 @@
         <div class="word-usage">Usage:{{ sentence.usage }}</div>
         <a href="{{ url_for('sentences_bp.edit_sentence', sentence_id=sentence._id) }}">Edit</a>
         <a href="{{ url_for('sentences_bp.delete_sentence', sentence_id=sentence._id) }}" onclick="return confirm('Are you sure?')">Delete</a>
+        <button onclick="playPronunciation('{{ sentence.sentence.replace(/'/g, '&#39;') }}')">Play</button>
     </li>
     {% else %}
     <li>No sentences added yet!</li>
     {% endfor %}
 </ul>
+
+<script>
+    function playPronunciation(word) {
+        const lang = 'en'; // 或根据需要调整语言
+        const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
+        const audio = new Audio(audioSrc);
+        audio.play().catch(error => console.error('Playback failed:', error));
+    }
+    
+            
+</script>
+
 {% endblock %}
