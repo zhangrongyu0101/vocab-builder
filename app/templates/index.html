@@ -16,16 +16,21 @@
             <a href="{{ url_for('auth_bp.register') }}">Register</a>
         {% endif %}
     </div>
-    <!-- 用户登录状态显示 -->
     <div class="user-info">
-
     </div>
 </div>
 
 <form action="/add" method="POST">
-    <input type="text" class="input-field" name="word" placeholder="Word" required>
+    <input type="text" class="input-field" name="word" id="wordInput" placeholder="Word" required>
     <textarea class="input-field" name="translation" placeholder="Translation"></textarea>
     <textarea class="input-field" name="usage" placeholder="Usage"></textarea>
+    
+    <select class="input-field" name="tags" multiple>
+        <option value="雅思听力">雅思听力</option>
+        <option value="雅思阅读">雅思阅读</option>
+        <option value="其它">其它</option>
+    </select>
+    
     <button type="submit">Add Word</button>
 </form>
 
@@ -47,10 +52,22 @@
         {{ word['word'] }} - {{ word['translation'] }}
         <div class="word-usage">Usage: {{ word['usage'] }}</div>
         <span>Dictation Count: {{ word['dictation_count'] }}</span>
+        
+        <!-- 显示标签 -->
+        <div class="tags">
+            Tags: 
+            {% if word['tags'] %}
+                {% for tag in word['tags'] %}
+                <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            {% else %}
+                <span>No tags</span>
+            {% endif %}
+        </div>
+        
         <a href="/edit/{{ word['_id'] }}">Edit</a>
         <a href="/word/upload-image/{{ word['_id'] }}" class="upload-image-btn">Upload Image</a>
         <a href="/delete/{{ word['_id'] }}" onclick="return confirm('Are you sure you want to delete this?');">Delete</a>
-        <!-- 添加播放按钮 -->
         <button onclick="playPronunciation('{{ word['word'] }}')">Play</button>
     </li>
     {% else %}
@@ -58,6 +75,18 @@
     {% endfor %}
 </ul>
 
+<style>
+    .tags {
+        margin-top: 5px;
+    }
+    .tag {
+        background-color: #e0e0e0;
+        border-radius: 3px;
+        padding: 2px 5px;
+        margin-right: 5px;
+        display: inline-block;
+    }
+</style>
 
     <!-- avaScript代码 -->
 <script>
@@ -67,6 +96,9 @@
         const audio = new Audio(audioSrc);
         audio.play().catch(error => console.error('Playback failed:', error));
     }
+    window.onload = function() {
+        document.getElementById('wordInput').focus();
+    };
     
     document.addEventListener('keydown', function(event) {
         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {

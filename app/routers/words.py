@@ -31,24 +31,22 @@ def index():
 
 @words_bp.route('/add', methods=['POST'])
 def add_word():
-    # 获取表单数据并去除word的前后空格
+    
     word = request.form.get('word').strip() if request.form.get('word') else None
     translation = request.form.get('translation')
     usage = request.form.get('usage')
-
+    tags = request.form.getlist('tags')
     if word:
-        # 检查数据库中是否已存在该单词
         existing_word = mongo.db.words.find_one({'word': word})
         if existing_word:
-            # 如果单词已存在，给用户反馈
             flash(f'The word "{word}" already exists.')
         else:
-            # 如果单词不存在，插入新单词
             mongo.db.words.insert_one({
                 'word': word,
                 'translation': translation,
                 'usage': usage,
-                'dictation_count': 0
+                'dictation_count': 0,
+                'tags': tags
             })
             flash('Word added successfully!')
     else:
