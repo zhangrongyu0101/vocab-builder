@@ -8,6 +8,14 @@
         <p id="currentScore" style="display: inline-block;">0</p>
     </div>
 
+    <div style="font-family: 'MyCustomFont', sans-serif;">
+        <p style="display: inline-block; margin-right: 10px;">听写次数:</p> 
+        <p id="dictation-count" style="display: inline-block;">0</p>
+        <p style="display: inline-block; margin-left: 20px; margin-right: 10px;">错误次数:</p> 
+        <p id="error-count" style="display: inline-block;">0</p>
+    </div>
+
+
 {% if dictation_prompt %}
 
     <a href="/edit/{{ dictation_prompt['_id'] }}">Edit</a>
@@ -38,6 +46,7 @@
         <h4>Examples</h4>
         <ul id="examples"></ul>
     </div>
+
 
     {% else %}
     <p>No words available for dictation.</p>
@@ -86,6 +95,16 @@
                 console.log('Dictation count incremented successfully');
             })
             .catch(error => console.error('Error:', error));
+        }
+
+        function incrementErrorsCount(wordId) {
+            fetch(`increment-errors-count/${wordId}`, { method: 'POST' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to increment errors count');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
 
         function displayList(elementId, items) {
@@ -158,6 +177,8 @@
                         document.getElementById('feedback').textContent = `Incorrect. The correct word is: ${correctWord}. Try again.`;
                         document.getElementById('usage').textContent = ''; // 可选：清除用法信息
                         updateScore(); 
+                        incrementErrorsCount(wordId);
+                        updateCount(wordId)
                         fetchTranslationAndPronunciation(); // 播放当前单词的读音
                     }
                 })
@@ -171,7 +192,7 @@
         }
 
         function loadNewWord() {
-            fetch('/new-word')
+            fetch('/new-word?tag=雅思听力')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load new word');
@@ -199,6 +220,7 @@
                 correctAnswerGiven = false; // Reset the flag for correct answer given
         
                 // Fetch translation and pronunciation for the new word
+                updateCount(data._id);
                 fetchTranslationAndPronunciation();
             })
             .catch(error => {
@@ -216,11 +238,16 @@
             })
             .catch(error => console.error('Error fetching score:', error));
         }
-    
-        checkButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            checkWord();
-        });
+
+        function updateCount(wordId) {
+            fetch(`/get-count/${wordId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('dictation-count').textContent = data.dictation_count;
+                document.getElementById('error-count').textContent = data.error_count;
+            })
+            .catch(error => console.error('Error fetching score:', error));
+        }
     
         input.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {

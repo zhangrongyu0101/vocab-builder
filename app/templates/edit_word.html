@@ -5,7 +5,8 @@
     <form action="/update/{{ word['_id'] }}" method="POST">
         <input type="text" name="word" value="{{ word['word'] }}" required>
         <input type="text" name="translation" value="{{ word['translation'] }}" >
-        <textarea name="usage" class="usage-input">{{ word['usage'] }}</textarea>
+        <textarea name="usage">{{ word['usage'] }}</textarea>
+        <input type="text" name="tags" value="{{ "雅思听力" }}" >
         <button type="submit">Update Word</button>
     </form>
 
@@ -20,17 +21,16 @@
                 word: $('input[name="word"]').val(),
                 translation: $('input[name="translation"]').val(),
                 usage: $('textarea[name="usage"]').val(),
+                tags: $('input[name="tags"]').val()
             };
             $.ajax({
                 type: "POST",
                 url: "/update/{{ word['_id'] }}",
                 data: formData,
                 success: function(response) {
-                    // 显示更新成功消息
                     alert("更新成功");
                 },
                 error: function() {
-                    // 显示更新失败消息
                     alert("更新失败");
                 }
             });

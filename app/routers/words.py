@@ -1,4 +1,3 @@
-# 主要单词增删改查功能
 from flask import Blueprint, request, redirect, url_for, flash
 from flask_pymongo import ObjectId
 from flask import Flask, request, jsonify
@@ -39,6 +38,14 @@ def add_word():
     if word:
         existing_word = mongo.db.words.find_one({'word': word})
         if existing_word:
+            mongo.db.words.update_one(
+                {'_id': ObjectId(existing_word['_id'])},
+                {
+                    '$push': {
+                        'tags' : request.form.get('tags')
+                    },
+                }
+            )
             flash(f'The word "{word}" already exists.')
         else:
             mongo.db.words.insert_one({
@@ -46,6 +53,7 @@ def add_word():
                 'translation': translation,
                 'usage': usage,
                 'dictation_count': 0,
+                'errors_count': 0,
                 'tags': tags
             })
             flash('Word added successfully!')
@@ -67,7 +75,8 @@ def edit_by_word(word):
         # 插入新单词并获取其_id
         result = mongo.db.words.insert_one({
             'word': word,
-            'dictation_count': 0
+            'dictation_count': 0,
+            'errors_count': 0,
         })
         # 重定向到编辑页面，使用插入文档的_id
         word_id = result.inserted_id
@@ -83,14 +92,18 @@ def edit_by_word(word):
 def update_word(word_id):
     mongo.db.words.update_one(
         {'_id': ObjectId(word_id)},
-        {'$set': {
-            'word': request.form.get('word'),
-            'translation': request.form.get('translation'),
-            'usage': request.form.get('usage')
-        }}
+        {
+            '$set': {
+                'word': request.form.get('word'),
+                'translation': request.form.get('translation'),
+                'usage': request.form.get('usage'),
+                'tags' : request.form.getlist('tags')
+            },
+        }
     )
     flash('Word updated successfully!')
     return redirect(url_for('words_bp.index'))
+
 
 @words_bp.route('/delete/<word_id>')
 def delete_word(word_id):

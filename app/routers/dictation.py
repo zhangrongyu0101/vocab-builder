@@ -7,19 +7,29 @@ import random
 
 dictation_bp = Blueprint('dictation_bp', __name__)
 
+
 @dictation_bp.route('/dictation')
 def dictation():
+    # 获取可选的标签参数
+    selected_tag = request.args.get('tag')
+
+    # 构建查询条件
+    query = {}
+    if selected_tag:
+        query['tags'] = selected_tag
+
     # 查找听写次数最少的单词
-    min_dictation_count = mongo.db.words.find().sort('dictation_count', 1).limit(1)[0]['dictation_count']
-    words_with_min_count = list(mongo.db.words.find({'dictation_count': min_dictation_count}))
+    min_dictation_count = mongo.db.words.find(query).sort('dictation_count', 1).limit(1)[0]['dictation_count']
+    words_with_min_count = list(mongo.db.words.find({'dictation_count': min_dictation_count, **query}))
 
     if words_with_min_count:
-        # 由于这里不需要随机选择，我们可以直接选择列表中的第一个单词
+        # 选择列表中的第一个单词
         dictation_prompt = words_with_min_count[0]
     else:
         dictation_prompt = None
 
     return render_template('dictation.html', dictation_prompt=dictation_prompt)
+
 
 @dictation_bp.route('/check-word', methods=['POST'])
 def check_word():
@@ -43,19 +53,32 @@ def check_word():
             return jsonify({'message': 'Incorrect, try again.'})
 
 
+from flask import request, jsonify
+import random
+
 @dictation_bp.route('/new-word', methods=['GET'])
 def new_word():
+    # 获取可选的标签参数
+    selected_tag = request.args.get('tag')
+
+    # 构建查询条件
+    query = {}
+    if selected_tag:
+        query['tags'] = selected_tag
+
     # 查找听写次数最少的单词
-    min_dictation_count = mongo.db.words.find().sort('dictation_count', 1).limit(1)[0]['dictation_count']
-    words_with_min_count = list(mongo.db.words.find({'dictation_count': min_dictation_count}))
+    words_with_min_count = list(mongo.db.words.find(query).sort('dictation_count', 1))
 
     if words_with_min_count:
-        dictation_prompt = random.choice(words_with_min_count)
+        min_dictation_count = words_with_min_count[0]['dictation_count']
+        filtered_words = [word for word in words_with_min_count if word['dictation_count'] == min_dictation_count]
+
+        dictation_prompt = random.choice(filtered_words)
         return jsonify({
             '_id': str(dictation_prompt['_id']),  # 确保ID被转换为字符串
             'word': dictation_prompt['word'],
             'translation': dictation_prompt['translation'],
-            'usage': dictation_prompt.get('usage', 'No usage available.')
+            'usage': dictation_prompt.get('usage', 'No usage available.'),
         })
     else:
         return jsonify({'error': 'No words available'}), 404
@@ -68,6 +91,29 @@ def increment_dictation_count(word_id):
     )
     return jsonify({'message': 'Dictation count incremented successfully'})
 
+@dictation_bp.route('/increment-errors-count/<word_id>', methods=['POST'])
+def increment_errors_count(word_id):
+    mongo.db.words.update_one(
+        {'_id': ObjectId(word_id)},
+        {'$inc': {'errors_count': 1}}
+    )
+    return jsonify({'message': 'Errors count incremented successfully'})
+
+
+@dictation_bp.route('/get-count/<word_id>', methods=['GET'])
+def get_count(word_id):
+    word_doc = mongo.db.words.find_one({'_id': ObjectId(word_id)})
+    if word_doc:
+        dictation_count = word_doc.get('dictation_count', 0)
+        error_count = word_doc.get('errors_count', 0)
+        return jsonify({
+            'dictation_count': dictation_count,
+            'error_count': error_count
+        })
+    else:
+        return jsonify({'error': 'Word not found'}), 404
+
+    
 @dictation_bp.route('/get-points', methods=['GET'])
 @login_required
 def get_points():

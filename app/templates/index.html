@@ -26,7 +26,7 @@
     <textarea class="input-field" name="usage" placeholder="Usage"></textarea>
     
     <select class="input-field" name="tags" multiple>
-        <option value="雅思听力">雅思听力</option>
+        <option value="雅思听力" selected>雅思听力</option>
         <option value="雅思阅读">雅思阅读</option>
         <option value="其它">其它</option>
     </select>
@@ -52,8 +52,7 @@
         {{ word['word'] }} - {{ word['translation'] }}
         <div class="word-usage">Usage: {{ word['usage'] }}</div>
         <span>Dictation Count: {{ word['dictation_count'] }}</span>
-        
-        <!-- 显示标签 -->
+        <span>Errors Count: {{ word['errors_count'] }}</span>
         <div class="tags">
             Tags: 
             {% if word['tags'] %}

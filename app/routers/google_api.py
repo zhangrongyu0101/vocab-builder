@@ -101,7 +101,7 @@ def parse_translation_response(data):
 @google_api_bp.route('/pronounce', methods=['GET'])
 def pronounce():
     text = request.args.get('text', '')
-    lang = request.args.get('lang', 'en')
+    lang = request.args.get('lang', 'en-GB')
     params = {
         'client': 'tw-ob',
         'ie': 'UTF-8',
