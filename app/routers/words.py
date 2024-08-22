@@ -38,14 +38,12 @@ def add_word():
     if word:
         existing_word = mongo.db.words.find_one({'word': word})
         if existing_word:
-            mongo.db.words.update_one(
-                {'_id': ObjectId(existing_word['_id'])},
-                {
-                    '$push': {
-                        'tags' : request.form.get('tags')
-                    },
-                }
-            )
+            for tag in tags:
+                if tag not in existing_word.get('tags', []):
+                    mongo.db.words.update_one(
+                        {'_id': ObjectId(existing_word['_id'])},
+                        {'$push': {'tags': tag}}
+                    )
             flash(f'The word "{word}" already exists.')
         else:
             mongo.db.words.insert_one({

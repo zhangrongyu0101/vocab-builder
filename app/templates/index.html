@@ -20,7 +20,9 @@
     </div>
 </div>
 
-<form action="/add" method="POST">
+<p id="lastWord"></p>
+
+<form id="wordForm">
     <input type="text" class="input-field" name="word" id="wordInput" placeholder="Word" required>
     <textarea class="input-field" name="translation" placeholder="Translation"></textarea>
     <textarea class="input-field" name="usage" placeholder="Usage"></textarea>
@@ -46,8 +48,9 @@
 
 <p id="uploadFeedback"></p>
 
+
 <ul>
-    {% for word in words %}
+    {% for word in words[:20] %}
     <li>
         {{ word['word'] }} - {{ word['translation'] }}
         <div class="word-usage">Usage: {{ word['usage'] }}</div>
@@ -89,16 +92,47 @@
 
     <!-- avaScript代码 -->
 <script>
-    function playPronunciation(word) {
-        const lang = 'en'; // 或根据需要调整语言
-        const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
-        const audio = new Audio(audioSrc);
-        audio.play().catch(error => console.error('Playback failed:', error));
+     function playPronunciation(word) {
+        return new Promise((resolve, reject) => {
+            const lang = 'en-GB'; // 或根据需要调整语言
+            const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
+            const audio = new Audio(audioSrc);
+            audio.play()
+                .then(() => {
+                    audio.onended = () => {
+                        resolve();
+                    };
+                })
+                .catch(error => {
+                    reject(error);
+                });
+        });
     }
-    window.onload = function() {
-        document.getElementById('wordInput').focus();
-    };
-    
+
+    document.getElementById('wordForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const newWord = formData.get('word');
+        const wordInput = document.getElementById('wordInput');
+        const lastWordElement = document.getElementById('lastWord');
+        try {
+            wordInput.value = ''; // 清除输入框中的内容
+            lastWordElement.textContent = `上一个单词：${newWord}`; // 更新上一个单词的显示
+            await playPronunciation(newWord);
+            const response = await fetch('/add', {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                throw new Error('Failed to add word');
+            }
+            const data = await response.json();
+            location.reload();
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
     document.addEventListener('keydown', function(event) {
         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
             const inputs = Array.from(document.querySelectorAll('.input-Failed')); // 仅选择带有'required'类的输入字段
@@ -139,6 +173,11 @@
             document.getElementById('uploadFeedback').textContent = 'Upload failed. Please try again.';
         });
     });
+
+
+    window.onload = function() {
+        document.getElementById('wordInput').focus();
+    };
 
             
 </script>
