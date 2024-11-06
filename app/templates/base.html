@@ -1,28 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Vocab Builder 1.2.0</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" />
     <style>
-        @font-face {
-            font-family: 'MyCustomFont';
-            src: url('../static/PressStart2P-Regular.ttf') format('truetype');
-        }
+      @font-face {
+        font-family: 'MyCustomFont';
+        src: url('../static/PressStart2P-Regular.ttf') format('truetype');
+      }
 
-        .title {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            margin: 0 auto; 
-        }
+      .title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin: 0 auto;
+      }
     </style>
-</head>
-<body>
-    {% block content %}{% endblock %}
-    {% block scripts %}{% endblock %}
-</body>
+  </head>
+  <body>
+    {% block content %}{% endblock %} {% block scripts %}{% endblock %}
+  </body>
 </html>

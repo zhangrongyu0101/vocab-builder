@@ -1,20 +1,22 @@
-{% extends "base.html" %}
-
-{% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% extends "base.html" %} {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 <h1>Similar Words</h1>
 <a href="{{ url_for('words_bp.index') }}"> back</a>
 <!-- 新增加相似单词组的表单 -->
 <h2>Add Similar Word Group</h2>
 <form action="{{ url_for('similar_words.add_similar_words') }}" method="POST">
-    <input type="text" name="words" placeholder="Enter words, separated, by, commas" required>
+    <input
+        type="text"
+        name="words"
+        placeholder="Enter words, separated, by, commas"
+        required
+    />
     <select name="similarityType">
         <option value="semantic">Semantic</option>
         <option value="formal">Formal</option>
     </select>
     <button type="submit">Add Group</button>
 </form>
-
 
 <!-- 显示相似单词组列表 -->
 <h2>Similar Word Groups</h2>
@@ -28,7 +30,9 @@
                 {{ word_detail.word }} - {{ word_detail.translation }}
                 <div class="word-usage">Usage: {{ word_detail.usage }}</div>
                 <a href="/edit_by_word/{{ word_detail.word }}">Edit</a>
-                <button onclick="playPronunciation('{{ word_detail.word }}')">Play</button>
+                <button onclick="playPronunciation('{{ word_detail.word }}')">
+                    Play
+                </button>
             </li>
             {% endfor %}
         </ul>
@@ -40,18 +44,16 @@
     {% endfor %}
 </ul>
 
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <script>
-
-function playPronunciation(word) {
-    const lang = 'en'; // 或根据需要调整语言
-    const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
-    const audio = new Audio(audioSrc);
-    audio.play().catch(error => console.error('Playback failed:', error));
-}
-
+    function playPronunciation(word) {
+        const lang = "en"; // 或根据需要调整语言
+        const audioSrc = `/pronounce?text=${encodeURIComponent(
+            word
+        )}&lang=${lang}`;
+        const audio = new Audio(audioSrc);
+        audio.play().catch((error) => console.error("Playback failed:", error));
+    }
 </script>
 
 {% endblock %}

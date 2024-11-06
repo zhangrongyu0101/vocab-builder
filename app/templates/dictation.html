@@ -1,261 +1,408 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
 
+<div style="font-family: 'MyCustomFont', sans-serif">
+  <p style="display: inline-block; margin-right: 10px">Current Score:</p>
+  <p id="currentScore" style="display: inline-block">0</p>
+</div>
 
-{% block content %}
+<div id="dictationOptions">
+  <label for="wordCount">Number of words:</label>
+  <input type="number" id="wordCount" min="1" value="1" />
 
-    <div style="font-family: 'MyCustomFont', sans-serif;">
-        <p style="display: inline-block; margin-right: 10px;">Current Score:</p> 
-        <p id="currentScore" style="display: inline-block;">0</p>
-    </div>
+  <label for="tag">Tag:</label>
+  <select id="tag">
+    <option value="雅思听力">雅思听力</option>
+    <!-- 添加更多标签选项 -->
+  </select>
 
-    <div style="font-family: 'MyCustomFont', sans-serif;">
-        <p style="display: inline-block; margin-right: 10px;">听写次数:</p> 
-        <p id="dictation-count" style="display: inline-block;">0</p>
-        <p style="display: inline-block; margin-left: 20px; margin-right: 10px;">错误次数:</p> 
-        <p id="error-count" style="display: inline-block;">0</p>
-    </div>
+  <label for="sortMethod">Sort by:</label>
+  <select id="sortMethod">
+    <option value="least_dictated">Least dictated</option>
+    <option value="most_errors">Most errors</option>
+  </select>
 
+  <button onclick="loadNewWord()">Load New Word(s)</button>
+</div>
+
+<button id="stopButton">Stop Dictation</button>
+
+<div style="font-family: 'MyCustomFont', sans-serif">
+  <p style="display: inline-block; margin-right: 10px">听写次数:</p>
+  <p id="dictation-count" style="display: inline-block">0</p>
+  <p style="display: inline-block; margin-left: 20px; margin-right: 10px">错误次数:</p>
+  <p id="error-count" style="display: inline-block">0</p>
+</div>
 
 {% if dictation_prompt %}
 
-    <a href="/edit/{{ dictation_prompt['_id'] }}">Edit</a>
-    <p id="translationPrompt"><span>{{ dictation_prompt['translation'] }}</span></p>
-    
-    <!-- google -->
-    <div id="translationResult">翻译中</div>
-    <audio id="pronunciationAudio" src="" hidden></audio>
+<a href="/edit/{{ dictation_prompt['_id'] }}">Edit</a>
+<p id="translationPrompt"><span>{{ dictation_prompt['translation'] }}</span></p>
 
-    <input type="text" id="dictationInput" placeholder="Type the English word">
-    <button id="checkWord">Check</button>
-    <p id="feedback"></p>
-    <!-- 新增的用法显示区域 -->
-    <div id="usage" style="max-width:100%; overflow-wrap:break-word; margin-top:20px;"></div> <!-- 用于显示用法的元素 -->
-    <input type="hidden" id="correctWord" value="{{ dictation_prompt['word'] }}">
-    <input type="hidden" id="dbId" value="{{ dictation_prompt['_id']}}">
-    <input type="hidden" id="wordUsage" value="{{ dictation_prompt['usage'] }}"> <!-- 存储用法的隐藏字段 -->
+<!-- google -->
+<div id="translationResult">翻译中</div>
+<audio id="pronunciationAudio" src="" hidden></audio>
 
-    <div class="translation-section">
-        <h4>Detailed Meanings</h4>
-        <ul id="detailedMeanings"></ul>
-    </div>
-    <div class="translation-section">
-        <h4>Definitions</h4>
-        <ul id="definitions"></ul>
-    </div>
-    <div class="translation-section">
-        <h4>Examples</h4>
-        <ul id="examples"></ul>
-    </div>
+<input type="text" id="dictationInput" placeholder="Type the English word" />
+<button id="checkWord">Check</button>
+<p id="feedback"></p>
+<div id="usage" style="max-width: 100%; overflow-wrap: break-word; margin-top: 20px"></div>
+<!-- 用于显示用法的元素 -->
+<input type="hidden" id="correctWord" value="{{ dictation_prompt['word'] }}" />
+<input type="hidden" id="dbId" value="{{ dictation_prompt['_id']}}" />
+<input type="hidden" id="wordUsage" value="{{ dictation_prompt['usage'] }}" />
+<!-- 存储用法的隐藏字段 -->
 
+<div class="translation-section">
+  <h4>Detailed Meanings</h4>
+  <ul id="detailedMeanings"></ul>
+</div>
+<div class="translation-section">
+  <h4>Definitions</h4>
+  <ul id="definitions"></ul>
+</div>
+<div class="translation-section">
+  <h4>Examples</h4>
+  <ul id="examples"></ul>
+</div>
 
-    {% else %}
-    <p>No words available for dictation.</p>
+{% else %}
+<p>No words available for dictation.</p>
 {% endif %}
 
-
-
 <script type="module">
-    import { GoogleTranslator } from "/static/translators/dist/translators.es.mjs";
-    
+  import { GoogleTranslator } from '/static/translators/dist/translators.es.mjs';
 
-    document.addEventListener('DOMContentLoaded', function() {
-        updateScore(); 
-        const input = document.getElementById('dictationInput');
-        const checkButton = document.getElementById('checkWord');
-        let correctAnswerGiven = false; // 用于标记是否已经给出了正确答案
-        
-        function fetchTranslationAndPronunciation() {
-            const word = document.getElementById('correctWord').value;
-            const translator = new GoogleTranslator();
-            
-            translator.translate(word, "en", "zh-CN").then((result) => {
-                document.getElementById('translationResult').textContent = `${result.mainMeaning}`;
-            });
+  document.addEventListener('DOMContentLoaded', function () {
+    updateScore();
+    const input = document.getElementById('dictationInput');
+    const checkButton = document.getElementById('checkWord');
+    let correctAnswerGiven = false;
+    let totalWords = 0;
+    let wrongWords = 0;
+    let firstDictation = true;
 
-            fetch(`/pronounce?text=${word}`)
-            .then(response => response.blob())
-            .then(blob => {
-                const audioURL = URL.createObjectURL(blob);
-                const audioElement = document.getElementById('pronunciationAudio');
-                audioElement.src = audioURL;
-                audioElement.play();
-            })
-            .catch(error => console.error('Error fetching pronunciation:', error));
-        }
-    
-        // 当页面加载完毕，获取翻译和读音
-        fetchTranslationAndPronunciation();
+    function fetchTranslationAndPronunciation() {
+      const word = document.getElementById('correctWord').value;
+      const translator = new GoogleTranslator();
 
-        function incrementDictationCount(wordId) {
-            fetch(`/increment-dictation-count/${wordId}`, { method: 'POST' })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to increment dictation count');
-                }
-                console.log('Dictation count incremented successfully');
-            })
-            .catch(error => console.error('Error:', error));
-        }
+      translator.translate(word, 'en', 'zh-CN').then((result) => {
+        document.getElementById('translationResult').textContent = `${result.mainMeaning}`;
+      });
 
-        function incrementErrorsCount(wordId) {
-            fetch(`increment-errors-count/${wordId}`, { method: 'POST' })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to increment errors count');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
+      fetch(`/pronounce?text=${word}`)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const audioURL = URL.createObjectURL(blob);
+          const audioElement = document.getElementById('pronunciationAudio');
+          audioElement.src = audioURL;
+          audioElement.play();
+        })
+        .catch((error) => console.error('Error fetching pronunciation:', error));
+    }
 
-        function displayList(elementId, items) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = ''; // Clear previous content
-            if (items) {
-                items.forEach(item => {
-                    const itemEl = document.createElement("li");
-                    itemEl.textContent = `${item.pos || ''} ${item.meaning}`;
-                    container.appendChild(itemEl);
+    fetchTranslationAndPronunciation();
 
-                    if (item.synonyms && item.synonyms.length) {
-                        itemEl.textContent += ` (Synonyms: ${item.synonyms.join(", ")})`;
-                    }
+    function incrementDictationCount(wordId) {
+      fetch(`/increment-dictation-count/${wordId}`, { method: 'POST' })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to increment dictation count');
+          }
+          console.log('Dictation count incremented successfully');
+        })
+        .catch((error) => console.error('Error:', error));
+    }
 
-                    if (item.example) {
-                        itemEl.textContent += ` - Example: ${item.example}`;
-                    }
-                });
-            }
-        }
+    function incrementErrorsCount(wordId) {
+      fetch(`increment-errors-count/${wordId}`, { method: 'POST' })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to increment errors count');
+          }
+        })
+        .catch((error) => console.error('Error:', error));
+    }
 
-        function displayExamples(elementId, examples) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = ''; // Clear previous content
-            if (examples) {
-                examples.forEach(example => {
-                    const exampleEl = document.createElement("li");
-                    exampleEl.textContent = `Source: ${example.source || 'N/A'} - Target: ${example.target || 'N/A'}`;
-                    container.appendChild(exampleEl);
-                });
-            }
-        }
-        
-        function checkWord() {
-            const inputWord = input.value.trim();
-            const correctWord = document.getElementById('correctWord').value;
-            // 从隐藏的input元素获取单词ID
-            const wordId = document.getElementById('dbId').value;
-            // 构建请求体
-            const data = { inputWord: inputWord, correctWord: correctWord };
-            const translator = new GoogleTranslator();
-            
-            if (!correctAnswerGiven){
-                fetch('/check-word', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === 'Correct!') {
-                        // 用户答对了，显示用法，播放读音，然后加载新单词
-                        document.getElementById('feedback').textContent = 'Correct!';
-                        document.getElementById('usage').innerHTML = `<strong>Usage:</strong> ${document.getElementById('wordUsage').value}`;
-                        translator.translate(correctWord, "en", "zh-CN").then((result) => {
-                            // Display more detailed information from the result object
-                            displayList("detailedMeanings", result.detailedMeanings);
-                            displayList("definitions", result.definitions);
-                            displayExamples("examples", result.examples);
-                        });
-                        correctAnswerGiven = true;
-                        updateScore(); 
-                        incrementDictationCount(wordId); // 增加听写次数
-                        return;
-                    } else {
-                        // 用户答错了，显示正确答案，不自动加载新单词，但仍然播放读音
-                        document.getElementById('feedback').textContent = `Incorrect. The correct word is: ${correctWord}. Try again.`;
-                        document.getElementById('usage').textContent = ''; // 可选：清除用法信息
-                        updateScore(); 
-                        incrementErrorsCount(wordId);
-                        updateCount(wordId)
-                        fetchTranslationAndPronunciation(); // 播放当前单词的读音
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('feedback').textContent = 'Error checking word. Please try again.';
-                });
-            }else {
-                loadNewWord(); // 加载新单词
-            }
-        }
+    function displayList(elementId, items) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = ''; // Clear previous content
+      if (items) {
+        items.forEach((item) => {
+          const itemEl = document.createElement('li');
+          itemEl.textContent = `${item.pos || ''} ${item.meaning}`;
+          container.appendChild(itemEl);
 
-        function loadNewWord() {
-            fetch('/new-word?tag=雅思听力')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load new word');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Update the translation, word, ID, and usage with the new word's data
-                document.getElementById('translationPrompt').querySelector('span').textContent = data.translation;
-                document.getElementById('correctWord').value = data.word;
-                document.getElementById('dbId').value = data._id;
-                document.getElementById('wordUsage').value = data.usage;
-        
-                // Update the Edit link's href attribute to reflect the new word's ID
-                document.querySelector('a[href^="/edit/"]').setAttribute('href', `/edit/${data._id}`);
-        
-                // Reset feedback, usage display, and input for the next word
-                document.getElementById('feedback').textContent = '';
-                document.getElementById('usage').textContent = '';
-                document.getElementById('detailedMeanings').textContent = '';
-                document.getElementById('definitions').textContent = '';
-                document.getElementById('examples').textContent = '';
+          if (item.synonyms && item.synonyms.length) {
+            itemEl.textContent += ` (Synonyms: ${item.synonyms.join(', ')})`;
+          }
 
-                input.value = ''; // Reset the input field
-                correctAnswerGiven = false; // Reset the flag for correct answer given
-        
-                // Fetch translation and pronunciation for the new word
-                updateCount(data._id);
-                fetchTranslationAndPronunciation();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('feedback').textContent = 'Failed to load new word. Please try again.';
-            });
-            updateScore();
-        }
-        
-        function updateScore() {
-            fetch('/get-points')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('currentScore').textContent = data.points;
-            })
-            .catch(error => console.error('Error fetching score:', error));
-        }
-
-        function updateCount(wordId) {
-            fetch(`/get-count/${wordId}`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('dictation-count').textContent = data.dictation_count;
-                document.getElementById('error-count').textContent = data.error_count;
-            })
-            .catch(error => console.error('Error fetching score:', error));
-        }
-    
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // 防止表单提交
-                checkWord();
-            }
+          if (item.example) {
+            itemEl.textContent += ` - Example: ${item.example}`;
+          }
         });
+      }
+    }
+
+    function displayExamples(elementId, examples) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = ''; // Clear previous content
+      if (examples) {
+        examples.forEach((example) => {
+          const exampleEl = document.createElement('li');
+          exampleEl.textContent = `Source: ${example.source || 'N/A'} - Target: ${example.target || 'N/A'}`;
+          container.appendChild(exampleEl);
+        });
+      }
+    }
+
+    function checkWord() {
+      const inputWord = input.value.trim();
+      const correctWord = document.getElementById('correctWord').value;
+      // 从隐藏的input元素获取单词ID
+      const wordId = document.getElementById('dbId').value;
+      // 构建请求体
+      const data = { inputWord: inputWord, correctWord: correctWord };
+      const translator = new GoogleTranslator();
+
+      if (!correctAnswerGiven) {
+        fetch('/check-word', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.message === 'Correct!') {
+              // 用户答对了，显示用法，播放读音，然后加载新单词
+              document.getElementById('feedback').textContent = 'Correct!';
+              document.getElementById('usage').innerHTML = `<strong>Usage:</strong> ${document.getElementById('wordUsage').value}`;
+              translator.translate(correctWord, 'en', 'zh-CN').then((result) => {
+                // Display more detailed information from the result object
+                displayList('detailedMeanings', result.detailedMeanings);
+                displayList('definitions', result.definitions);
+                displayExamples('examples', result.examples);
+              });
+              correctAnswerGiven = true;
+              totalWords++;
+              updateScore();
+              incrementDictationCount(wordId); // 增加听写次数
+              firstDictation = true;
+              return;
+            } else {
+              // 用户答错了，显示正确答案，不自动加载新单词，但仍然播放读音
+              document.getElementById('feedback').textContent = `Incorrect. The correct word is: ${correctWord}. Try again.`;
+              document.getElementById('usage').textContent = ''; // 可选：清除用法信息
+              updateScore();
+              incrementErrorsCount(wordId);
+              updateCount(wordId);
+              if (firstDictation) {
+                wrongWords++;
+                firstDictation = false;
+              }
+              fetchTranslationAndPronunciation(); // 播放当前单词的读音
+            }
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+            document.getElementById('feedback').textContent = 'Error checking word. Please try again.';
+          });
+      } else {
+        loadNewWord(); // 加载新单词
+      }
+    }
+
+    function loadNewWord() {
+      const count = document.getElementById('wordCount').value || 100;
+      const tag = document.getElementById('tag').value || '雅思听力';
+      const sortMethod = document.getElementById('sortMethod').value || 'least_dictated';
+
+      const params = new URLSearchParams({
+        count: count,
+        tag: tag,
+        sort: sortMethod,
+      });
+
+      fetch(`/new-word?${params.toString()}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to load new word');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          // Update the translation, word, ID, and usage with the new word's data
+          document.getElementById('translationPrompt').querySelector('span').textContent = data.translation;
+          document.getElementById('correctWord').value = data.word;
+          document.getElementById('dbId').value = data._id;
+          document.getElementById('wordUsage').value = data.usage;
+
+          // Update the Edit link's href attribute to reflect the new word's ID
+          document.querySelector('a[href^="/edit/"]').setAttribute('href', `/edit/${data._id}`);
+
+          // Reset feedback, usage display, and input for the next word
+          document.getElementById('feedback').textContent = '';
+          document.getElementById('usage').textContent = '';
+          document.getElementById('detailedMeanings').textContent = '';
+          document.getElementById('definitions').textContent = '';
+          document.getElementById('examples').textContent = '';
+
+          input.value = ''; // Reset the input field
+          correctAnswerGiven = false; // Reset the flag for correct answer given
+
+          // Fetch translation and pronunciation for the new word
+          updateCount(data._id);
+          fetchTranslationAndPronunciation();
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          document.getElementById('feedback').textContent = 'Failed to load new word. Please try again.';
+        });
+      updateScore();
+    }
+
+    function updateScore() {
+      fetch('/get-points')
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById('currentScore').textContent = data.points;
+        })
+        .catch((error) => console.error('Error fetching score:', error));
+    }
+
+    function updateCount(wordId) {
+      fetch(`/get-count/${wordId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById('dictation-count').textContent = data.dictation_count;
+          document.getElementById('error-count').textContent = data.error_count;
+        })
+        .catch((error) => console.error('Error fetching score:', error));
+    }
+
+    function startFireworks() {
+      const canvas = document.getElementById('fireworks');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let particles = [];
+
+      function Particle(x, y) {
+        this.x = x;
+        this.y = y;
+        this.velocity = {
+          x: (Math.random() - 0.5) * 5,
+          y: (Math.random() - 0.5) * 5,
+        };
+        this.radius = Math.random() * 2;
+        this.life = 100;
+        this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+      }
+
+      Particle.prototype.update = function () {
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        this.life--;
+      };
+
+      Particle.prototype.draw = function () {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      };
+
+      function createExplosion(x, y) {
+        for (let i = 0; i < 100; i++) {
+          particles.push(new Particle(x, y));
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (Math.random() < 0.05) {
+          createExplosion(Math.random() * canvas.width, Math.random() * canvas.height);
+        }
+
+        particles.forEach((particle, index) => {
+          particle.update();
+          particle.draw();
+
+          if (particle.life <= 0) {
+            particles.splice(index, 1);
+          }
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    }
+
+    function showResultsModal() {
+      const correctWords = totalWords - wrongWords;
+      const accuracy = totalWords > 0 ? ((correctWords / totalWords) * 100).toFixed(2) : 0;
+
+      const modalHTML = `
+            <div id="resultsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+                <div style="background-color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h2>听写结果</h2>
+                    <p>总单词数: ${totalWords}</p>
+                    <p>错误单词数: ${wrongWords}</p>
+                    <p>正确率: ${accuracy}%</p>
+                    <button id="closeModalBtn">关闭</button>
+                </div>
+            </div>
+            <canvas id="fireworks" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1001;"></canvas>
+        `;
+
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+      startFireworks();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('resultsModal');
+      const fireworks = document.getElementById('fireworks');
+      if (modal) modal.remove();
+      if (fireworks) fireworks.remove();
+    }
+
+    function submitDictation() {
+      const statistics = {
+        mode: 'ielts_listening',
+        total_words: totalWords,
+        error_words: wrongWords,
+      };
+
+      fetch('/save_records', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(statistics),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          showResultsModal(); // 显示结果弹窗和烟花
+        })
+        .catch((error) => console.error('Error:', error));
+    }
+    input.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault(); // 防止表单提交
+        checkWord();
+      }
     });
-    </script>
-    
+
+    stopButton.addEventListener('click', function () {
+      submitDictation();
+    });
+  });
+</script>
+
 {% endblock %}

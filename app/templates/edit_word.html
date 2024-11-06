@@ -1,41 +1,39 @@
-{% extends "base.html" %}
-
-{% block content %}
-    <h1>Edit Word</h1>
-    <form action="/update/{{ word['_id'] }}" method="POST">
-        <input type="text" name="word" value="{{ word['word'] }}" required>
-        <input type="text" name="translation" value="{{ word['translation'] }}" >
-        <textarea name="usage">{{ word['usage'] }}</textarea>
-        <input type="text" name="tags" value="{{ "雅思听力" }}" >
-        <button type="submit">Update Word</button>
-    </form>
+{% extends "base.html" %} {% block content %}
+<h1>Edit Word</h1>
+<form action="/update/{{ word['_id'] }}" method="POST">
+    <input type="text" name="word" value="{{ word['word'] }}" required />
+    <input type="text" name="translation" value="{{ word['translation'] }}" />
+    <textarea name="usage">{{ word['usage'] }}</textarea>
+    <input type="text" name="tags" value="{{ "雅思听力" }}" >
+    <button type="submit">Update Word</button>
+</form>
 
 <!-- 添加jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 <script>
-    $(document).ready(function() {
-        $('form').submit(function(event) {
+    $(document).ready(function () {
+        $("form").submit(function (event) {
             event.preventDefault(); // 阻止表单默认提交行为
             var formData = {
                 word: $('input[name="word"]').val(),
                 translation: $('input[name="translation"]').val(),
                 usage: $('textarea[name="usage"]').val(),
-                tags: $('input[name="tags"]').val()
+                tags: $('input[name="tags"]').val(),
             };
             $.ajax({
                 type: "POST",
                 url: "/update/{{ word['_id'] }}",
                 data: formData,
-                success: function(response) {
+                success: function (response) {
                     alert("更新成功");
                 },
-                error: function() {
+                error: function () {
                     alert("更新失败");
-                }
+                },
             });
         });
     });
-    </script>
+</script>
 
 {% endblock %}

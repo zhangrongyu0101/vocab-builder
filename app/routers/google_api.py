@@ -115,3 +115,24 @@ def pronounce():
         return Response(response.content, mimetype='audio/mpeg')
     except requests.RequestException as e:
         return jsonify({'error': str(e)}), 500
+    
+    
+@google_api_bp.route('/spell', methods=['GET'])
+def spell():
+    text = request.args.get('text', '')
+    lang = request.args.get('lang', 'en-GB')
+    spelled_text = ' '.join(text)  # Insert spaces between each character
+
+    params = {
+        'client': 'tw-ob',
+        'ie': 'UTF-8',
+        'tl': lang,
+        'q': spelled_text,
+    }
+
+    try:
+        response = requests.get(GOOGLE_TTS_URL, params=params, headers={"User-Agent": "Mozilla/5.0"})
+        response.raise_for_status()
+        return Response(response.content, mimetype='audio/mpeg')
+    except requests.RequestException as e:
+        return jsonify({'error': str(e)}), 500

@@ -28,9 +28,12 @@
     <textarea class="input-field" name="usage" placeholder="Usage"></textarea>
     
     <select class="input-field" name="tags" multiple>
-        <option value="雅思听力" selected>雅思听力</option>
+        <option value="雅思大作文" >雅思大作文</option>
+        <option value="雅思小作文" >雅思小作文</option> 
+        <option value="雅思听力">雅思听力</option>
         <option value="雅思阅读">雅思阅读</option>
-        <option value="其它">其它</option>
+        <option value="雅思口语" >雅思口语</option>
+        <option value="其它" selected>其它</option>
     </select>
     
     <button type="submit">Add Word</button>
@@ -50,7 +53,7 @@
 
 
 <ul>
-    {% for word in words[:20] %}
+    {% for word in words[:500] %}
     <li>
         {{ word['word'] }} - {{ word['translation'] }}
         <div class="word-usage">Usage: {{ word['usage'] }}</div>
@@ -90,24 +93,27 @@
     }
 </style>
 
-    <!-- avaScript代码 -->
 <script>
-     function playPronunciation(word) {
+    function playPronunciation(word) {
         return new Promise((resolve, reject) => {
-            const lang = 'en-GB'; // 或根据需要调整语言
-            const audioSrc = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
-            const audio = new Audio(audioSrc);
-            audio.play()
-                .then(() => {
-                    audio.onended = () => {
-                        resolve();
-                    };
-                })
-                .catch(error => {
-                    reject(error);
-                });
+            const lang = 'en-GB'; // Adjust language as needed
+            const audioSrcPronounce = `/pronounce?text=${encodeURIComponent(word)}&lang=${lang}`;
+            const audioSrcSpell = `/spell?text=${encodeURIComponent(word)}&lang=${lang}`;
+    
+            const audioPronounce = new Audio(audioSrcPronounce);
+            const audioSpell = new Audio(audioSrcSpell);
+    
+            audioPronounce.onended = () => {
+                audioSpell.play().then(resolve).catch(reject);
+            };
+    
+            audioPronounce.onerror = reject;
+            audioSpell.onerror = reject;
+    
+            audioPronounce.play().catch(reject);
         });
     }
+
 
     document.getElementById('wordForm').addEventListener('submit', async function(e) {
         e.preventDefault();

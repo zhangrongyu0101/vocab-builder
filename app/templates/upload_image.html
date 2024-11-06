@@ -1,69 +1,86 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <h1>Upload Image for "{{ word.word }}"</h1>
 <a href="{{ url_for('words_bp.index') }}"> back</a>
 <!-- 单词详情 -->
 <p>Translation: {{ word.translation }}</p>
 <p>Usage: {{ word.usage }}</p>
 
-<form id="uploadForm" action="{{ url_for('words_bp.upload_image_for_word', word_id=word_id) }}" method="post" enctype="multipart/form-data">
+<form
+    id="uploadForm"
+    action="{{ url_for('words_bp.upload_image_for_word', word_id=word_id) }}"
+    method="post"
+    enctype="multipart/form-data"
+>
     <label for="image">Select image or paste it here:</label>
-    <input type="file" id="image" name="image" accept="image/*" required>
-    <div id="pasteArea" contenteditable="true" style="border: 1px solid #ccc; padding: 10px; cursor: pointer;" onclick="document.getElementById('image').click();">
+    <input type="file" id="image" name="image" accept="image/*" required />
+    <div
+        id="pasteArea"
+        contenteditable="true"
+        style="border: 1px solid #ccc; padding: 10px; cursor: pointer"
+        onclick="document.getElementById('image').click();"
+    >
         Click here or paste an image directly from your clipboard.
     </div>
-    <br><br>
+    <br /><br />
     <button type="submit">Upload Image</button>
 </form>
 
 <!-- 显示已上传的图片 -->
 {% if images %}
-    <h2>Existing Images</h2>
-    {% for image in images %}
-    <div class="image-container">
-        <img src="data:image/jpeg;base64,{{ image.data }}" alt="Word image">
-        <button onclick="deleteImage('{{ word_id }}', '{{ image.id }}')">Delete</button>
-    </div>
-    {% endfor %}
-{% endif %}
+<h2>Existing Images</h2>
+{% for image in images %}
+<div class="image-container">
+    <img src="data:image/jpeg;base64,{{ image.data }}" alt="Word image" />
+    <button onclick="deleteImage('{{ word_id }}', '{{ image.id }}')">
+        Delete
+    </button>
+</div>
+{% endfor %} {% endif %}
 
 <script>
     function deleteImage(wordId, imageId) {
         if (confirm("Are you sure you want to delete this image?")) {
             fetch(`/word/${wordId}/delete-image/${imageId}`, {
-                method: 'DELETE',
+                method: "DELETE",
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                window.location.reload();
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    window.location.reload();
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
         }
     }
 
     // Handle paste events
-    document.getElementById('pasteArea').addEventListener('paste', function(e) {
-        var items = (e.clipboardData || e.originalEvent.clipboardData).items;
-        for (var index in items) {
-            var item = items[index];
-            if (item.kind === 'file') {
-                var blob = item.getAsFile();
-                var reader = new FileReader();
-                reader.onload = function(event) {
-                    document.getElementById('image').files = new DataTransfer().files;
-                    var dt = new DataTransfer();
-                    dt.items.add(new File([blob], "pastedImage.png", {type: "image/png"}));
-                    document.getElementById('image').files = dt.files;
-                    document.getElementById('uploadForm').submit(); // Auto submit form after file is ready
-                }; 
-                reader.readAsDataURL(blob);
+    document
+        .getElementById("pasteArea")
+        .addEventListener("paste", function (e) {
+            var items = (e.clipboardData || e.originalEvent.clipboardData)
+                .items;
+            for (var index in items) {
+                var item = items[index];
+                if (item.kind === "file") {
+                    var blob = item.getAsFile();
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        document.getElementById("image").files =
+                            new DataTransfer().files;
+                        var dt = new DataTransfer();
+                        dt.items.add(
+                            new File([blob], "pastedImage.png", {
+                                type: "image/png",
+                            })
+                        );
+                        document.getElementById("image").files = dt.files;
+                        document.getElementById("uploadForm").submit(); // Auto submit form after file is ready
+                    };
+                    reader.readAsDataURL(blob);
+                }
             }
-        }
-    });
+        });
 </script>
-    
+
 {% endblock %}

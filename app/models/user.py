@@ -16,7 +16,6 @@ class User(UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    # Flask-Login integration
     @property
     def is_authenticated(self):
         return True

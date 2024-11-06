@@ -50,3 +50,4 @@ def login():
 def logout():
     logout_user()  # Logs out the user
     return redirect(url_for('words_bp.index'))  # Redirects to the login page
+
